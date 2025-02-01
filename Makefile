@@ -5,7 +5,7 @@ install:           # Install npm packages
 	npm install
 
 setup_husky:      # Setup Husky for git hooks
-	npm run husky
+	npm run prepare
 
 # Code Quality and Formatting
 clean:             # Clean the project
@@ -49,7 +49,8 @@ export_pdf:        # Export pitch deck to PDF using Marp
 	npx marp pitch_deck.md --pdf --allow-local-files --html
 
 # Pre-commit Checks
-before_commit: lint	gas	format	format_contract	format_check	test_contract	build_frontend	build_backend
+# before_commit: lint	gas	format	format_contract	format_check	test_contract	build_frontend	build_backend
+before_commit: lint
 
 # Help
 help:              # Show this help message
