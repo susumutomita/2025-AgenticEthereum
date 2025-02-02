@@ -3,23 +3,24 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/susumutomita/2025-AgenticEthereum)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/susumutomita/2025-AgenticEthereum)
 ![GitHub repo size](https://img.shields.io/github/repo-size/susumutomita/2025-AgenticEthereum)
-[![CI](https://github.com/susumutomita/2025-AgenticEthereum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/susumutomita/2025-AgenticEthereum/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/susumutomita/2025-AgenticEthereum/ci.yml?branch=main)](https://github.com/susumutomita/2025-AgenticEthereum/actions/workflows/ci.yml)
 
 # CryptoDaily Brief – Daily Personalized Crypto Insights
 
-CryptoDaily Brief is a platform designed to deliver daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions—all through a user-friendly dashboard and interactive chat interface. By aggregating on-chain data from users' wallets and off-chain data from market sentiment and economic indicators, our AI agents generate actionable recommendations to guide daily investment decisions.
+CryptoDaily Brief is a comprehensive platform that delivers daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions. Built as a monorepo, the project comprises three main components: a **frontend** built with Next.js, a **backend** (Node.js/Express) API, and **smart contracts** developed with Foundry. The system aggregates on-chain wallet data (via The Graph) and off-chain market sentiment and economic indicators to generate actionable recommendations through AI agents.
 
 ## Table of Contents
 
 - [CryptoDaily Brief – Daily Personalized Crypto Insights](#cryptodaily-brief--daily-personalized-crypto-insights)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
-  - [Technologies Used](#technologies-used)
+  - [Architecture \& Technologies](#architecture--technologies)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
-    - [Steps](#steps)
+    - [Setup Steps](#setup-steps)
   - [Usage](#usage)
   - [Development](#development)
+  - [Deployment](#deployment)
   - [Future Enhancements](#future-enhancements)
   - [Contributing](#contributing)
   - [License](#license)
@@ -28,46 +29,43 @@ CryptoDaily Brief is a platform designed to deliver daily, personalized crypto a
 ## Features
 
 - **Daily Personalized Briefing:**
-  Receive a tailored daily report that includes portfolio performance, risk management tips, investment rebalancing recommendations, and tax optimization insights.
+  Get a tailored daily report including portfolio performance, risk management tips, rebalancing recommendations, and tax optimization insights.
 
 - **Real-Time Data Aggregation:**
-  Automatically retrieves wallet data (transactions, balances) via The Graph API and enriches it with external market sentiment, economic indicators, and relevant news using open APIs.
+  Aggregates wallet data (transactions, balances) via The Graph and enriches it with market sentiment, economic indicators, and relevant news through open APIs.
 
 - **AI-Powered Insights:**
-  Utilizes AI agents built with Autonome/AgentKit to analyze historical and real-time data, generating specific action items such as “rebalance portfolio” or “consider tax-loss harvesting.”
+  AI agents built with Autonome/AgentKit analyze historical and real-time data to generate specific action items, such as “rebalance portfolio” or “consider tax-loss harvesting.”
 
 - **Interactive Dashboard:**
-  A user-friendly interface built with React/Next.js displays dynamic charts (using Chart.js or D3.js), graphs, and real-time notifications of daily recommendations.
+  A user-friendly Next.js dashboard displays dynamic charts (via Chart.js/D3.js), graphs, and real-time notifications.
 
 - **Smart Contract Automation:**
-  Implements smart contracts (written in Solidity) on testnets (e.g., Sepolia or Ganache) for features like automated token actions, reward issuance, and transaction verification.
+  Implements smart contracts (written in Solidity using Foundry) for features like automated token actions, reward issuance, and transaction verification on testnets.
 
 - **Enhanced Security:**
-  Integrates Lit Protocol for decentralized authentication and secure management of sensitive data, ensuring a robust security layer without compromising usability.
+  Integrates Lit Protocol for decentralized authentication and secure management of sensitive data, ensuring robust security with user-friendly design.
 
-## Technologies Used
-
-- **Backend:**
-  - Node.js & Express for REST API and server-side logic
-  - Axios for HTTP requests
-  - Socket.IO for real-time communication
-
-- **Blockchain & Data Aggregation:**
-  - The Graph for querying blockchain data (transactions, balances)
-  - Solidity for smart contract development (using Hardhat/Truffle)
-
-- **AI & Agent Framework:**
-  - Autonome/AgentKit for building AI agents that provide personalized insights
+## Architecture & Technologies
 
 - **Frontend:**
-  - React or Next.js for building the web dashboard
-  - Chart.js / D3.js for data visualization
+  - Next.js (App Router) with TypeScript
+  - React, Chart.js, Axios, Socket.IO for real-time updates
+  - Hosted on Vercel
 
-- **Security:**
-  - Lit Protocol for decentralized authentication and secure key management
+- **Backend:**
+  - Node.js & Express for REST API
+  - Axios for HTTP requests, Socket.IO for real-time communication
+  - Hosted as a Vercel Serverless Function or on an alternative platform (e.g., Render) if needed
 
-- **Others:**
-  - Open APIs for retrieving market sentiment, economic indicators, and news data
+- **Blockchain & Smart Contracts:**
+  - The Graph for querying on-chain wallet data
+  - Solidity smart contracts developed with Foundry (Foundry, Forge)
+  - Smart contract interactions integrated with the backend API
+
+- **AI & Security:**
+  - Autonome/AgentKit for building AI agents that generate personalized insights
+  - Lit Protocol for secure, decentralized authentication
 
 ## Installation
 
@@ -75,101 +73,113 @@ CryptoDaily Brief is a platform designed to deliver daily, personalized crypto a
 
 - [Node.js](https://nodejs.org/) (v14 or higher)
 - [Git](https://git-scm.com/)
+- [Foundry](https://book.getfoundry.sh/) (for smart contract development)
 - A code editor (e.g., VSCode)
-- Metamask (or another wallet) set up for testnet transactions
 
-### Steps
+### Setup Steps
 
-1. **Clone the repository:**
-
+1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/cryptodaily-brief.git
-   cd cryptodaily-brief
+   git clone https://github.com/yourusername/2025-AgenticEthereum.git
+   cd 2025-AgenticEthereum
    ```
 
-2. **Setup the backend:**
-
+2. **Install Dependencies for All Components:**
+   The project uses a Makefile to streamline commands. From the repository root, run:
    ```bash
-   cd backend
-   npm install
+   make install
+   ```
+   This will install npm packages for the frontend and backend. For the contracts, ensure Foundry is installed and run:
+   ```bash
+   cd contracts && forge install
    ```
 
-3. **Setup the frontend:**
-
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Configure Environment Variables:**
-
-   Create a `.env` file in the backend (and/or frontend if needed) with required API keys (The Graph endpoint, wallet keys, etc.).
-
-5. **Run the Backend Server:**
-
-   ```bash
-   cd backend
-   npm start
-   ```
-
-6. **Run the Frontend App:**
-
-   ```bash
-   cd ../frontend
-   npm start
-   ```
+3. **Configure Environment Variables:**
+   Create necessary `.env` files in the **backend** and **contracts** directories (if needed) with required API keys and configuration (e.g., The Graph endpoint, wallet keys, etc.).
 
 ## Usage
 
-1. **Access the Dashboard:**
-   Open your browser and navigate to `http://localhost:3000` (or the designated port). The dashboard displays your crypto asset summary, daily insights, and actionable recommendations.
-
-2. **Connect Your Wallet:**
-   Follow the on-screen instructions to connect your wallet (via MetaMask or other supported wallets). The system will fetch your transaction history and balance data automatically.
-
-3. **Receive Daily Briefing:**
-   Every morning, the AI agent will analyze your on-chain and off-chain data and display a personalized briefing with recommendations such as portfolio rebalancing, risk alerts, and tax-saving tips.
-
-4. **Interact via Chatbot:**
-   You can also interact with the system using the integrated Telegram (or X) chatbot for real-time inquiries and additional insights.
+1. **Start the Backend Server:**
+   ```bash
+   cd backend
+   npm start
+   ```
+2. **Start the Frontend App:**
+   ```bash
+   cd frontend
+   npm start
+   ```
+3. **Access the Dashboard:**
+   Open your browser at `http://localhost:3000` to see your personalized crypto insights dashboard.
 
 ## Development
 
 - **Real-Time Data Integration:**
-  The backend uses The Graph API to fetch blockchain data in real time. Socket.IO is used to push updates to the frontend, ensuring that your dashboard always displays the latest information.
+  The backend uses The Graph API to fetch blockchain data and Socket.IO for real-time communication. The frontend displays this data dynamically via an interactive dashboard.
 
 - **AI Agent Implementation:**
-  We utilize Autonome/AgentKit for building the AI agent that analyzes data and generates recommendations. The current implementation uses simple rule-based logic, with plans to incorporate machine learning for improved accuracy.
+  AI agents analyze your wallet and market data to generate personalized recommendations.
 
 - **Smart Contract Interaction:**
-  Smart contracts written in Solidity manage automated actions (e.g., token rewards). The contracts are deployed on a testnet and are integrated with our backend for secure and verifiable operations.
+  Smart contracts manage automated actions (like token rewards) and are developed using Foundry. Testing and deployment are managed with Forge.
 
-- **Security Considerations:**
-  Lit Protocol ensures that user authentication and data privacy are maintained without sacrificing ease of use. All sensitive operations are protected by multi-signature (auto-configured) and other decentralized security measures.
+- **Makefile:**
+  Use the provided Makefile to run common tasks:
+
+  ```makefile
+  install:           # Install npm packages for frontend and backend
+      npm install
+
+  build_frontend:    # Build the Next.js frontend
+      cd frontend && npm run build
+
+  build_backend:     # Build backend (if applicable)
+      cd backend && npm run build
+
+  test:              # Run tests for frontend and backend
+      make test_frontend
+      make test_backend
+
+  test_frontend:
+      cd frontend && npm run test
+
+  test_backend:
+      cd backend && npm run test
+  ```
+
+## Deployment
+
+- **Frontend:**
+  Deployed on Vercel for fast and scalable hosting.
+
+- **Backend:**
+  Can be deployed on Vercel using Serverless Functions or an alternative such as Render for persistent services.
+
+- **Smart Contracts:**
+  Deployed on testnets (e.g., Sepolia) using Foundry. Future production deployment can be considered based on project maturity.
 
 ## Future Enhancements
 
 - **Enhanced AI Models:**
-  Integrate advanced machine learning models to refine investment and risk management recommendations.
+  Integrate advanced machine learning for more precise investment and risk management recommendations.
 
 - **Expanded Data Sources:**
-  Incorporate additional data sources such as decentralized finance (DeFi) protocols, additional market sentiment APIs, and user health data.
+  Incorporate additional data from DeFi protocols, broader market sentiment APIs, and health/expenditure data.
 
-- **Mobile Application:**
-  Develop a mobile version for even more accessible daily briefings and notifications.
+- **Mobile App Development:**
+  Develop a mobile version for more accessible daily insights and notifications.
 
 - **e-Tax Integration:**
-  Extend functionality to include automated tax reporting features based on user transactions.
+  Extend functionality to include automated tax reporting based on user transactions.
 
 ## Contributing
 
-I welcome contributions to improve BlockFeedback. Please fork the repository and submit a pull request with your changes.
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature-branch`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
-4. Push to the branch (`git push origin feature-branch`)
-5. Open a pull request
+Contributions are welcome To contribute:
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-branch`.
+3. Commit your changes: `git commit -m 'Add new feature'`.
+4. Push to your branch: `git push origin feature-branch`.
+5. Open a pull request.
 
 ## License
 
@@ -177,4 +187,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Team
 
-- [Susumu Tomita](https://susumutomita.netlify.app/) - Full Stack Developer
+- **Susumu Tomita** – Full Stack Developer
+  [Personal Website](https://susumutomita.netlify.app/)
