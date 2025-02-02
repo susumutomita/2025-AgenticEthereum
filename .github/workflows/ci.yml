@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push: {}
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies and run lint
+        run: make install && make lint
+
+      - name: Build Frontend
+        run: make build_frontend
+
+      - name: Build Backend
+        run: make build_backend
+
+      - name: Build Contracts
+        run: make build_contract
+
+      - name: Test Contracts
+        run: make test_contract
