@@ -11,14 +11,14 @@
   "scripts": {
     "clean": "npx rimraf node_modules out",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:contract": "forge test -vvv --root backend",
-    "format:contract": "forge fmt --root backend",
+    "test:contract": "forge test -vvv --root contract",
+    "format:contract": "forge fmt --root contract",
     "gas": "forge snapshot --root backend",
     "format": "prettier --write '**/**/*.{js,ts,tsx,css}'",
     "format:check": "prettier --check '**/**/*.{ts,tsx,js,jsx,css}'",
     "lint": "npx textlint 'README.md'",
     "lint-staged": "lint-staged",
-    "prepare": "husky",
+    "husky": "husky",
     "start": "concurrently \"npm start --prefix frontend\" \"npm start --prefix backend\"",
     "install-all": "npm install && npm install --prefix frontend"
   },

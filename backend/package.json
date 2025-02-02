@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node out/index.js"
   },
   "keywords": [],
-  "author": "Susumu Tomita <your.email@example.com> (http://yourwebsite.com/)",
-  "license": "MIT",
   "description": "",
   "dependencies": {
     "axios": "^1.7.9",
@@ -20,6 +20,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.0",
+    "@types/node-telegram-bot-api": "^0.64.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }
