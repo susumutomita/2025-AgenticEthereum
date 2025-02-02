@@ -39,20 +39,24 @@ interface WalletData {
 
 export default function Dashboard() {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
-  // サンプルのウォレットアドレス（実際はユーザー入力などで取得）
-  const walletAddress = "0x1234567890abcdef1234567890abcdef12345678";
+  const [walletAddress, setWalletAddress] = useState<string>("");
 
-  useEffect(() => {
-    // バックエンドのAPIエンドポイントを呼び出す
-    axios
-      .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
-      .then((response) => {
-        setWalletData(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching wallet data:", error);
-      });
-  }, [walletAddress]);
+  const handleWalletAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWalletAddress(event.target.value);
+  };
+
+  const handleFetchWalletData = () => {
+    if (walletAddress) {
+      axios
+        .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
+        .then((response) => {
+          setWalletData(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching wallet data:", error);
+        });
+    }
+  };
 
   // ダミーデータが取得できた場合にグラフ用のデータを準備
   const chartData = {
@@ -77,6 +81,21 @@ export default function Dashboard() {
 
   return (
     <div>
+      <div className="mb-4">
+        <input
+          type="text"
+          value={walletAddress}
+          onChange={handleWalletAddressChange}
+          placeholder="ウォレットアドレスを入力"
+          className="p-2 border border-gray-300 rounded"
+        />
+        <button
+          onClick={handleFetchWalletData}
+          className="ml-2 p-2 bg-blue-500 text-white rounded"
+        >
+          データ取得
+        </button>
+      </div>
       <div className="mb-4">
         <h3 className="text-lg font-bold">
           現在のウォレット残高:{" "}
