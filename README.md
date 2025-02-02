@@ -1,3 +1,10 @@
+![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/susumutomita/2025-AgenticEthereum)
+![GitHub top language](https://img.shields.io/github/languages/top/susumutomita/2025-AgenticEthereum)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/susumutomita/2025-AgenticEthereum)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/susumutomita/2025-AgenticEthereum)
+![GitHub repo size](https://img.shields.io/github/repo-size/susumutomita/2025-AgenticEthereum)
+[![CI](https://github.com/susumutomita/2025-AgenticEthereum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/susumutomita/2025-AgenticEthereum/actions/workflows/ci.yml)
+
 # CryptoDaily Brief – Daily Personalized Crypto Insights
 
 CryptoDaily Brief is a platform designed to deliver daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions—all through a user-friendly dashboard and interactive chat interface. By aggregating on-chain data from users' wallets and off-chain data from market sentiment and economic indicators, our AI agents generate actionable recommendations to guide daily investment decisions.
