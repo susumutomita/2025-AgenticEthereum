@@ -68,14 +68,23 @@ describe("GET /api/wallet/:address", () => {
       ],
     };
 
-    const cache = { "0x1234567890abcdef1234567890abcdef12345678": mockData };
+    // First request to populate cache
+    (axios.post as jest.Mock).mockResolvedValueOnce({
+      data: { data: { wallet: mockData } },
+    });
+    await request(app).get(
+      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
+    );
 
+    // Second request should use cached data
+    (axios.post as jest.Mock).mockRejectedValueOnce(new Error("Should not be called"));
     const response = await request(app).get(
       "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
     );
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockData);
+    expect(axios.post).toHaveBeenCalledTimes(1);
   });
 
   it("should handle axios errors", async () => {
