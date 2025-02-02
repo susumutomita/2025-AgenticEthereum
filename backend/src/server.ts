@@ -70,6 +70,7 @@ const walletHandler: RequestHandler = async (
     cache[walletAddress] = walletData;
     res.status(200).json(walletData);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Error fetching wallet data" });
   }
 };
