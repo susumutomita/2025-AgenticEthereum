@@ -1,18 +1,18 @@
 // src/app/layout.tsx
-import './globals.css'
-import { Inter } from 'next/font/google'
+import "./globals.css";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'CryptoDaily Brief',
-  description: '日々の暗号資産パーソナルブリーフィング',
-}
+  title: "CryptoDaily Brief",
+  description: "日々の暗号資産パーソナルブリーフィング",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="ja">
@@ -27,5 +27,5 @@ export default function RootLayout({
         </footer>
       </body>
     </html>
-  )
+  );
 }
