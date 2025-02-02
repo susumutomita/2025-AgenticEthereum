@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import Home from "../src/app/page";
+import Home from "../src/app/(top)/page";
 
 describe("Home Page", () => {
   it("renders the dashboard heading", () => {

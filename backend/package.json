@@ -14,9 +14,11 @@
   "description": "",
   "dependencies": {
     "axios": "^1.7.9",
+    "axios-retry": "^4.5.0",
     "cors": "^2.8.5",
     "ethers": "^6.13.5",
     "express": "^4.21.2",
+    "helmet": "^8.0.0",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import {
@@ -37,21 +37,28 @@ interface WalletData {
   };
 }
 
-export default function Dashboard() {
-  const [walletData, setWalletData] = useState<WalletData | null>(null);
-  // サンプルのウォレットアドレス（実際はユーザー入力などで取得）
-  const walletAddress = "0x1234567890abcdef1234567890abcdef12345678";
+interface DashboardProps {
+  walletAddress: string;
+}
 
-  useEffect(() => {
-    // バックエンドのAPIエンドポイントを呼び出す
-    axios
-      .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
-      .then((response) => {
-        setWalletData(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching wallet data:", error);
-      });
+export default function Dashboard({ walletAddress }: DashboardProps) {
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // API からウォレットデータを取得する関数
+  const handleFetchWalletData = useCallback(() => {
+    if (walletAddress) {
+      axios
+        .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
+        .then((response) => {
+          setWalletData(response.data);
+          setError(null);
+        })
+        .catch((error) => {
+          console.error("Error fetching wallet data:", error);
+          setError("ウォレットデータの取得に失敗しました。");
+        });
+    }
   }, [walletAddress]);
 
   // ダミーデータが取得できた場合にグラフ用のデータを準備
@@ -75,8 +82,24 @@ export default function Dashboard() {
     ],
   };
 
+  // walletAddress が変化した際に自動取得したい場合は useEffect を使っても良い
+  useEffect(() => {
+    if (walletAddress) {
+      handleFetchWalletData();
+    }
+  }, [walletAddress, handleFetchWalletData]);
+
   return (
     <div>
+      <div className="mb-4">
+        <button
+          onClick={handleFetchWalletData}
+          className="ml-2 p-2 bg-blue-500 text-white rounded"
+        >
+          データ取得
+        </button>
+      </div>
+      {error && <p className="text-red-500">{error}</p>}
       <div className="mb-4">
         <h3 className="text-lg font-bold">
           現在のウォレット残高:{" "}
