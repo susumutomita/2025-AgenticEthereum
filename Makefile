@@ -44,11 +44,14 @@ build_backend:     # Build the backend
 build_contract:     # Build contracts with Forge
 	cd contract && forge build
 
-start:             # Start the frontend
-	npx concurrently "make start_frontend"
+start:             # Start the frontend and backend
+	npx concurrently "make start_frontend" "make start_backend"
 
-start_frontend:    # Build the frontend
+start_frontend:    # Start the frontend
 	cd frontend && npm run dev
+
+start_backend:     # Start the backend
+	cd backend && npm run dev
 
 # Export Documentation
 export_pdf:        # Export pitch deck to PDF using Marp
@@ -75,7 +78,7 @@ help:              # Show this help message
 	@echo "  build_frontend  Build the frontend"
 	@echo "  build_backend   Build the backend"
 	@echo "  build_contract  Build contracts with Forge"
-	@echo "  start           Start the frontend"
+	@echo "  start           Start the frontend and backend"
 	@echo "  export_pdf      Export pitch deck to PDF using Marp"
 	@echo "  elavator_pitch  Export elevator pitch deck to PDF using Marp"
 	@echo "  before_commit   Run checks before commit"
