@@ -1,18 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'contracts/**'
-  pull_request:
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'contracts/**'
+  push: {}
+  workflow_dispatch:
 
 jobs:
   ci:
