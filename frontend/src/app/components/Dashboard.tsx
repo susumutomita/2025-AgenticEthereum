@@ -40,6 +40,7 @@ interface WalletData {
 export default function Dashboard() {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleWalletAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWalletAddress(event.target.value);
@@ -51,9 +52,11 @@ export default function Dashboard() {
         .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
         .then((response) => {
           setWalletData(response.data);
+          setError(null);
         })
         .catch((error) => {
           console.error("Error fetching wallet data:", error);
+          setError("ウォレットデータの取得に失敗しました。");
         });
     }
   };
@@ -96,6 +99,7 @@ export default function Dashboard() {
           データ取得
         </button>
       </div>
+      {error && <p className="text-red-500">{error}</p>}
       <div className="mb-4">
         <h3 className="text-lg font-bold">
           現在のウォレット残高:{" "}

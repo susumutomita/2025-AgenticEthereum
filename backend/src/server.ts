@@ -24,7 +24,8 @@ interface WalletData {
   transactions: Transaction[];
 }
 
-const cache: { [key: string]: WalletData } = {};
+const cache: { [key: string]: { data: WalletData; timestamp: number } } = {};
+const CACHE_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hour
 
 const walletHandler: RequestHandler = async (
   req: Request,
@@ -45,12 +46,14 @@ const walletHandler: RequestHandler = async (
   `;
 
   if (!process.env.GRAPH_API_ENDPOINT) {
-    res.status(500).json({ error: "GRAPH_API_ENDPOINT is not defined" });
+    console.error("GRAPH_API_ENDPOINT is not defined");
+    res.status(500).json({ success: false, error: "GRAPH_API_ENDPOINT is not defined" });
     return;
   }
 
-  if (cache[walletAddress]) {
-    res.status(200).json(cache[walletAddress]);
+  const cachedData = cache[walletAddress];
+  if (cachedData && Date.now() - cachedData.timestamp < CACHE_EXPIRATION_TIME) {
+    res.status(200).json({ success: true, data: cachedData.data });
     return;
   }
 
@@ -60,17 +63,18 @@ const walletHandler: RequestHandler = async (
     });
     const { data } = response.data;
     if (!data || !data.wallet) {
-      res.status(404).json({ error: "Wallet not found" });
+      res.status(404).json({ success: false, error: "Wallet not found" });
       return;
     }
     const walletData: WalletData = {
       balance: data.wallet.balance,
       transactions: data.wallet.transactions,
     };
-    cache[walletAddress] = walletData;
-    res.status(200).json(walletData);
+    cache[walletAddress] = { data: walletData, timestamp: Date.now() };
+    res.status(200).json({ success: true, data: walletData });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching wallet data" });
+    console.error("Error fetching wallet data:", error);
+    res.status(500).json({ success: false, error: "Error fetching wallet data" });
   }
 };
 

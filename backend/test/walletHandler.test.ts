@@ -12,6 +12,11 @@ jest.mock("axios");
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 describe("GET /api/wallet/:address", () => {
+  beforeEach(() => {
+    // Clear cache before each test
+    Object.keys(cache).forEach((key) => delete cache[key]);
+  });
+
   it("should return wallet data", async () => {
     const mockData = {
       data: {
@@ -32,7 +37,7 @@ describe("GET /api/wallet/:address", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(mockData.data.wallet);
+    expect(response.body).toEqual({ success: true, data: mockData.data.wallet });
   });
 
   it("should return 404 if wallet not found", async () => {
@@ -45,7 +50,7 @@ describe("GET /api/wallet/:address", () => {
     );
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ error: "Wallet not found" });
+    expect(response.body).toEqual({ success: false, error: "Wallet not found" });
   });
 
   it("should return 500 if GRAPH_API_ENDPOINT is not defined", async () => {
@@ -56,7 +61,7 @@ describe("GET /api/wallet/:address", () => {
     );
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: "GRAPH_API_ENDPOINT is not defined" });
+    expect(response.body).toEqual({ success: false, error: "GRAPH_API_ENDPOINT is not defined" });
   });
 
   it("should return cached data if available", async () => {
@@ -68,14 +73,14 @@ describe("GET /api/wallet/:address", () => {
       ],
     };
 
-    const cache = { "0x1234567890abcdef1234567890abcdef12345678": mockData };
+    const cache = { "0x1234567890abcdef1234567890abcdef12345678": { data: mockData, timestamp: Date.now() } };
 
     const response = await request(app).get(
       "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(mockData);
+    expect(response.body).toEqual({ success: true, data: mockData });
   });
 
   it("should handle axios errors", async () => {
@@ -86,6 +91,38 @@ describe("GET /api/wallet/:address", () => {
     );
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: "Error fetching wallet data" });
+    expect(response.body).toEqual({ success: false, error: "Error fetching wallet data" });
+  });
+
+  it("should log detailed error message for missing GRAPH_API_ENDPOINT", async () => {
+    delete process.env.GRAPH_API_ENDPOINT;
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+    const response = await request(app).get(
+      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
+    );
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ success: false, error: "GRAPH_API_ENDPOINT is not defined" });
+    expect(consoleSpy).toHaveBeenCalledWith("GRAPH_API_ENDPOINT is not defined");
+
+    consoleSpy.mockRestore();
+  });
+
+  it("should log detailed error message for axios errors", async () => {
+    (axios.post as jest.Mock).mockRejectedValue(new Error("Network Error"));
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+    const response = await request(app).get(
+      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
+    );
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ success: false, error: "Error fetching wallet data" });
+    expect(consoleSpy).toHaveBeenCalledWith("Error fetching wallet data:", expect.any(Error));
+
+    consoleSpy.mockRestore();
   });
 });
