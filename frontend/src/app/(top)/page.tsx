@@ -1,5 +1,6 @@
-import Dashboard from "./components/Dashboard";
-import WalletInput from "./components/WalletInput";
+"use client";
+import Dashboard from "../components/Dashboard";
+import WalletInput from "../components/WalletInput";
 import { useState } from "react";
 
 export default function Home() {

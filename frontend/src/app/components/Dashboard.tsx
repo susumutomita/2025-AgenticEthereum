@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import {
@@ -37,16 +37,16 @@ interface WalletData {
   };
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+  walletAddress: string;
+}
+
+export default function Dashboard({ walletAddress }: DashboardProps) {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleWalletAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setWalletAddress(event.target.value);
-  };
-
-  const handleFetchWalletData = () => {
+  // API からウォレットデータを取得する関数
+  const handleFetchWalletData = useCallback(() => {
     if (walletAddress) {
       axios
         .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
@@ -59,7 +59,7 @@ export default function Dashboard() {
           setError("ウォレットデータの取得に失敗しました。");
         });
     }
-  };
+  }, [walletAddress]);
 
   // ダミーデータが取得できた場合にグラフ用のデータを準備
   const chartData = {
@@ -82,16 +82,16 @@ export default function Dashboard() {
     ],
   };
 
+  // walletAddress が変化した際に自動取得したい場合は useEffect を使っても良い
+  useEffect(() => {
+    if (walletAddress) {
+      handleFetchWalletData();
+    }
+  }, [walletAddress, handleFetchWalletData]);
+
   return (
     <div>
       <div className="mb-4">
-        <input
-          type="text"
-          value={walletAddress}
-          onChange={handleWalletAddressChange}
-          placeholder="ウォレットアドレスを入力"
-          className="p-2 border border-gray-300 rounded"
-        />
         <button
           onClick={handleFetchWalletData}
           className="ml-2 p-2 bg-blue-500 text-white rounded"

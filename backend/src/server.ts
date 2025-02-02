@@ -47,7 +47,9 @@ const walletHandler: RequestHandler = async (
 
   if (!process.env.GRAPH_API_ENDPOINT) {
     console.error("GRAPH_API_ENDPOINT is not defined");
-    res.status(500).json({ success: false, error: "GRAPH_API_ENDPOINT is not defined" });
+    res
+      .status(500)
+      .json({ success: false, error: "GRAPH_API_ENDPOINT is not defined" });
     return;
   }
 
@@ -74,9 +76,13 @@ const walletHandler: RequestHandler = async (
     res.status(200).json({ success: true, data: walletData });
   } catch (error) {
     console.error("Error fetching wallet data:", error);
-    res.status(500).json({ success: false, error: "Error fetching wallet data" });
+    res
+      .status(500)
+      .json({ success: false, error: "Error fetching wallet data" });
   }
 };
+
+export { walletHandler, cache };
 
 app.get("/api/wallet/:address", walletHandler);
 
