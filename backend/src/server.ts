@@ -28,8 +28,11 @@ app.get("/api/wallet/:address", async (req: Request, res: Response) => {
       "https://api.thegraph.com/subgraphs/name/your-subgraph",
       { query }
     );
-    const walletData = response.data.data;
-    res.json(walletData);
+    const { data } = response.data;
+    if (!data || !data.wallet) {
+      return res.status(404).json({ error: "Wallet data not found" });
+    }
+    res.json(data);
   } catch (error) {
     console.error("Error fetching data from The Graph API:", error);
     res.status(500).json({ error: "Failed to fetch wallet data" });
