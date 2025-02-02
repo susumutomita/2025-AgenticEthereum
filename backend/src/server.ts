@@ -25,7 +25,7 @@ app.get("/api/wallet/:address", async (req: Request, res: Response) => {
 
   try {
     const response = await axios.post(
-      "https://api.thegraph.com/subgraphs/name/your-subgraph",
+      process.env.GRAPH_API_ENDPOINT,
       { query }
     );
     const { data } = response.data;
