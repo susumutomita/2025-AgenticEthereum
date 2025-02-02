@@ -1,7 +1,6 @@
-// backend/src/server.ts
 import express, { Request, Response } from "express";
-import axios from "axios";
 import cors from "cors";
+import axios from "axios";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,23 +13,26 @@ app.get("/api/wallet/:address", async (req: Request, res: Response) => {
   const query = `
     {
       wallet(id: "${walletAddress}") {
+        balance
         transactions {
           id
           value
           timestamp
         }
-        balance
       }
     }
   `;
+
   try {
     const response = await axios.post(
       "https://api.thegraph.com/subgraphs/name/your-subgraph",
-      { query },
+      { query }
     );
-    res.json(response.data.data);
-  } catch (error: any) {
-    res.status(500).json({ error: error.toString() });
+    const walletData = response.data.data;
+    res.json(walletData);
+  } catch (error) {
+    console.error("Error fetching data from The Graph API:", error);
+    res.status(500).json({ error: "Failed to fetch wallet data" });
   }
 });
 

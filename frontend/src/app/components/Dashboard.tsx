@@ -1,4 +1,3 @@
-// src/app/components/Dashboard.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -41,7 +40,7 @@ interface WalletData {
 export default function Dashboard() {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   // サンプルのウォレットアドレス（実際はユーザー入力などで取得）
-  const walletAddress = "0xYourWalletAddress";
+  const walletAddress = "0x1234567890abcdef1234567890abcdef12345678";
 
   useEffect(() => {
     // バックエンドのAPIエンドポイントを呼び出す
