@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, RequestHandler } from "express";
 import cors from "cors";
 import axios from "axios";
 
@@ -8,7 +8,10 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-app.get("/api/wallet/:address", async (req: Request, res: Response) => {
+const walletHandler: RequestHandler = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const walletAddress = req.params.address.toLowerCase();
   const query = `
     {
@@ -23,22 +26,28 @@ app.get("/api/wallet/:address", async (req: Request, res: Response) => {
     }
   `;
 
+  if (!process.env.GRAPH_API_ENDPOINT) {
+    res.status(500).json({ error: "GRAPH_API_ENDPOINT is not defined" });
+    return;
+  }
+
   try {
-    const response = await axios.post(
-      process.env.GRAPH_API_ENDPOINT,
-      { query }
-    );
+    const response = await axios.post(process.env.GRAPH_API_ENDPOINT, {
+      query,
+    });
     const { data } = response.data;
     if (!data || !data.wallet) {
-      return res.status(404).json({ error: "Wallet data not found" });
+      res.status(404).json({ error: "Wallet not found" });
+      return;
     }
-    res.json(data);
+    res.status(200).json(data.wallet);
   } catch (error) {
-    console.error("Error fetching data from The Graph API:", error);
-    res.status(500).json({ error: "Failed to fetch wallet data" });
+    res.status(500).json({ error: "Error fetching wallet data" });
   }
-});
+};
+
+app.get("/api/wallet/:address", walletHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
