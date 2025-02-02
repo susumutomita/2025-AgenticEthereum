@@ -5,7 +5,7 @@ install:           # Install npm packages
 	npm install
 
 setup_husky:      # Setup Husky for git hooks
-	npm run prepare
+	npm run husky
 
 # Code Quality and Formatting
 clean:             # Clean the project
