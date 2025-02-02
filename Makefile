@@ -1,4 +1,4 @@
-.PHONY: install setup_husky clean lint gas format format_check format_contract test_contract before_commit build_frontend start build_backend	build_contract export_pdf help
+.PHONY: install setup_husky clean lint gas format format_check format_contract test	test_contract before_commit build_frontend start build_backend	build_contract export_pdf help
 
 # Installation and Setup
 install:           # Install npm packages
@@ -26,6 +26,9 @@ format_contract:   # Format smart contracts
 # Testing
 test_contract:     # Test smart contracts
 	npm run test:contract
+
+test:
+	npm run test
 
 # Gas Report
 gas:               # Run gas reporter
@@ -66,6 +69,7 @@ help:              # Show this help message
 	@echo "  format          Format code"
 	@echo "  format_check    Check code formatting"
 	@echo "  format_contract Format smart contracts"
+	@echo "  test            Run tests"
 	@echo "  test_contract   Test smart contracts"
 	@echo "  gas             Run gas reporter"
 	@echo "  build_frontend  Build the frontend"
