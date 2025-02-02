@@ -22,8 +22,14 @@ jobs:
         with:
           version: nightly
 
-      - name: Install dependencies and run lint
-        run: make install && make lint
+      - name: Install dependencies
+        run: make install
+
+      - name: Lint
+        run: make lint
+
+      - name: Format
+        run: make format_check
 
       - name: Build Frontend
         run: make build_frontend
@@ -36,3 +42,6 @@ jobs:
 
       - name: Test Contracts
         run: make test_contract
+
+      - name: Test
+        run: make test
