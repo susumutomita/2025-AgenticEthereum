@@ -21,6 +21,7 @@
     "lint:fix": "npm run --workspaces lint --fix && eslint '.github/**/*.{ts,js,yaml,yml}' --fix",
     "husky": "husky",
     "start": "concurrently \"npm start --prefix frontend\" \"npm start --prefix backend\"",
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
     "install-all": "npm install && npm install --prefix frontend"
   },
   "keywords": [],
@@ -51,6 +52,7 @@
     "textlint-rule-preset-ja-spacing": "^2.2.0",
     "textlint-rule-preset-ja-technical-writing": "^12.0.2",
     "textlint-rule-spellcheck-tech-word": "^5.0.0",
-    "ts-jest": "^29.2.5"
+    "ts-jest": "^29.2.5",
+    "concurrently": "^8.2.0"
   }
 }

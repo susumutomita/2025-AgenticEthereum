@@ -1,4 +1,4 @@
-.PHONY: install setup_husky clean lint gas format format_check format_contract test	test_contract before_commit build_frontend start build_backend	build_contract export_pdf help
+.PHONY: install setup_husky dev	clean lint gas format format_check format_contract test	test_contract before_commit build_frontend start build_backend	build_contract export_pdf help
 
 # -------------------------------
 # Help
@@ -9,6 +9,7 @@ help:              # Show this help message
 	@echo "Targets:"
 	@echo "  install         Install npm packages"
 	@echo "  setup_husky     Setup Husky for git hooks"
+	@echo "  dev             Start the frontend in development mode"
 	@echo "  clean           Clean the project"
 	@echo "  lint            Run linter"
 	@echo "  format          Format code"
@@ -34,6 +35,12 @@ install:           # Install npm packages
 
 setup_husky:       # Setup Husky for git hooks
 	npm run husky
+
+# -------------------------------
+# Development
+# -------------------------------
+dev:
+	npm run dev
 
 # -------------------------------
 # Code Quality and Formatting
