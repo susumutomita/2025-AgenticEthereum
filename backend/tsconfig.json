@@ -12,6 +12,7 @@
     "strictNullChecks": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
+    "outDir": "dist",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitReturns": true,
