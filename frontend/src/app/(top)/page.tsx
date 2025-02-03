@@ -7,7 +7,12 @@ export default function Home() {
   const [walletAddress, setWalletAddress] = useState<string>("");
 
   const handleWalletAddressChange = (address: string) => {
-    setWalletAddress(address);
+    const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(address);
+    if (isValidAddress) {
+      setWalletAddress(address);
+    } else {
+      console.error("Invalid wallet address format");
+    }
   };
 
   return (

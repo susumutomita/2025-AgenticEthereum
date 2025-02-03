@@ -9,8 +9,13 @@ const WalletInput: React.FC<WalletInputProps> = ({ onWalletAddressChange }) => {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const address = event.target.value;
-    setWalletAddress(address);
-    onWalletAddressChange(address);
+    const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(address);
+    if (isValidAddress) {
+      setWalletAddress(address);
+      onWalletAddressChange(address);
+    } else {
+      console.error("Invalid wallet address format");
+    }
   };
 
   return (

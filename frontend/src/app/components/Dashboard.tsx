@@ -49,7 +49,7 @@ export default function Dashboard({ walletAddress }: DashboardProps) {
   const handleFetchWalletData = useCallback(() => {
     if (walletAddress) {
       axios
-        .get<WalletData>(`http://localhost:3001/api/wallet/${walletAddress}`)
+        .get<WalletData>(`/api/wallet/${walletAddress}`)
         .then((response) => {
           setWalletData(response.data);
           setError(null);

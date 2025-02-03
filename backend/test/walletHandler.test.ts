@@ -153,4 +153,44 @@ describe("GET /api/wallet/:address", () => {
 
     consoleSpy.mockRestore();
   });
+
+  it("should handle new wallet data format", async () => {
+    const mockData = {
+      data: {
+        wallet: {
+          balance: 200,
+          transactions: [
+            { id: "1", value: 100, timestamp: 1620000000 },
+            { id: "2", value: 100, timestamp: 1620000001 },
+          ],
+        },
+      },
+    };
+
+    (axios.post as jest.Mock).mockResolvedValue({ data: mockData });
+
+    const response = await request(app).get(
+      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: mockData.data.wallet,
+    });
+  });
+
+  it("should handle new error handling logic", async () => {
+    (axios.post as jest.Mock).mockRejectedValue(new Error("New Error"));
+
+    const response = await request(app).get(
+      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
+    );
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      success: false,
+      error: "Error fetching wallet data",
+    });
+  });
 });
