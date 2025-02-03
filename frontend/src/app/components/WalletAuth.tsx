@@ -27,7 +27,10 @@ const WalletAuth: React.FC = () => {
       {isAuthenticated ? (
         <p>ウォレット認証に成功しました。</p>
       ) : (
-        <button onClick={handleWalletAuth} className="p-2 bg-blue-500 text-white rounded">
+        <button
+          onClick={handleWalletAuth}
+          className="p-2 bg-blue-500 text-white rounded"
+        >
           ウォレット認証
         </button>
       )}
