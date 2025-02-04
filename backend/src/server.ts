@@ -27,14 +27,19 @@ const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 // Schedule daily briefing generation
 cron.schedule("0 8 * * *", async () => {
   try {
-    const users = telegramBot.getAllConnectedUsers();
+    if (!process.env.TELEGRAM_BOT_TOKEN) {
+      throw new Error("TELEGRAM_BOT_TOKEN is required for sending briefings");
+    }
+    const users = await telegramBot.getAllConnectedUsers();
     for (const user of users) {
       const briefing = await aiService.getDailyBriefing(
         user.walletAddress,
         user.userContext,
       );
       await telegramBot.sendBriefing(user.chatId, briefing);
+      console.log(`Successfully sent briefing to user ${user.chatId}`);
     }
+    console.log(`Daily briefing task completed. Sent briefings to ${users.length} users`);
   } catch (error) {
     console.error("Error generating daily briefings:", error);
   }
