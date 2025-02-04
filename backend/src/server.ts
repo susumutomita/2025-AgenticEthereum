@@ -3,6 +3,8 @@ import cors from "cors";
 import * as dotenv from "dotenv";
 import { walletHandler } from "./walletHandler.js";
 import { createTelegramBot } from "./services/telegramService.js";
+import { aiService } from "./services/aiService.js";
+import cron from "node-cron";
 import "./types/env.js";
 
 // Load environment variables
@@ -21,6 +23,22 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 }
 
 const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+
+// Schedule daily briefing generation
+cron.schedule("0 8 * * *", async () => {
+  try {
+    const users = telegramBot.getAllConnectedUsers();
+    for (const user of users) {
+      const briefing = await aiService.getDailyBriefing(
+        user.walletAddress,
+        user.userContext,
+      );
+      await telegramBot.sendBriefing(user.chatId, briefing);
+    }
+  } catch (error) {
+    console.error("Error generating daily briefings:", error);
+  }
+});
 
 // API Routes
 app.get("/api/wallet/:address", (req, res) => {

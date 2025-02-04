@@ -1,6 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
 import {
-  // BotCommand,
   TelegramUserState,
   BOT_MESSAGES,
 } from "../types/telegram.js";
@@ -210,6 +209,12 @@ ${ds.key_points.map((p) => `- ${p}`).join("\n")}`,
 
   private isValidEthereumAddress(address: string): boolean {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
+  }
+
+  public getAllConnectedUsers(): TelegramUserState[] {
+    return Array.from(this.userStates.values()).filter(
+      (state) => state.setupComplete && state.walletAddress,
+    );
   }
 }
 

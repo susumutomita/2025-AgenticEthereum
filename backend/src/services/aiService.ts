@@ -5,6 +5,7 @@ import {
   AIRecommendation,
   UserContext,
 } from "../types/ai.js";
+import { createTelegramBot } from "./telegramService.js";
 
 class AIService {
   private async getMarketData(): Promise<MarketData[]> {
@@ -148,6 +149,18 @@ class AIService {
     } catch (error) {
       console.error("Failed to generate daily briefing:", error);
       throw new Error("Failed to generate daily briefing");
+    }
+  }
+
+  async sendBriefingsToUsers(users: { chatId: number; walletAddress: string; userContext: UserContext }[]): Promise<void> {
+    const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN!);
+    for (const user of users) {
+      try {
+        const briefing = await this.getDailyBriefing(user.walletAddress, user.userContext);
+        await telegramBot.sendBriefing(user.chatId, briefing);
+      } catch (error) {
+        console.error(`Failed to send briefing to user ${user.chatId}:`, error);
+      }
     }
   }
 }
