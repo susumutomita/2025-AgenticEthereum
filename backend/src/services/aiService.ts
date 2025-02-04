@@ -132,18 +132,23 @@ class AIService {
     walletAddress: string,
     userContext: UserContext,
   ): Promise<AIRecommendation> {
-    const [marketData, socialSignals, walletAnalysis] = await Promise.all([
-      this.getMarketData(),
-      this.getSocialSignals(),
-      this.analyzeWallet(walletAddress),
-    ]);
+    try {
+      const [marketData, socialSignals, walletAnalysis] = await Promise.all([
+        this.getMarketData(),
+        this.getSocialSignals(),
+        this.analyzeWallet(walletAddress),
+      ]);
 
-    return this.generateRecommendation(
-      marketData,
-      socialSignals,
-      walletAnalysis,
-      userContext,
-    );
+      return this.generateRecommendation(
+        marketData,
+        socialSignals,
+        walletAnalysis,
+        userContext,
+      );
+    } catch (error) {
+      console.error('Failed to generate daily briefing:', error);
+      throw new Error('Failed to generate daily briefing');
+    }
   }
 }
 
