@@ -1,16 +1,28 @@
 import { aiService } from "../src/services/aiService.js";
 import { createTelegramBot } from "../src/services/telegramService.js";
+import { UserContext } from "../src/types/ai.js";
 
-jest.mock("../src/services/telegramService.js");
+// テスト実行前にダミーの TELEGRAM_BOT_TOKEN を設定
+process.env.TELEGRAM_BOT_TOKEN = "dummy-token";
+
+// モックファクトリを用いて createTelegramBot をモック化
+jest.mock("../src/services/telegramService.js", () => ({
+  createTelegramBot: jest.fn(),
+}));
+
+// createTelegramBot を jest.Mock としてキャスト
+const mockedCreateTelegramBot = createTelegramBot as jest.Mock;
 
 describe("AIService", () => {
   const mockSendBriefing = jest.fn();
   const mockGetDailyBriefing = jest.fn();
 
   beforeAll(() => {
-    createTelegramBot.mockReturnValue({
+    // モック関数の戻り値を設定
+    mockedCreateTelegramBot.mockReturnValue({
       sendBriefing: mockSendBriefing,
     });
+    // aiService.getDailyBriefing をモックに置き換え
     aiService.getDailyBriefing = mockGetDailyBriefing;
   });
 
@@ -20,12 +32,13 @@ describe("AIService", () => {
 
   test("should generate daily briefing for a user", async () => {
     const walletAddress = "0x123";
-    const userContext = {
+    const userContext: UserContext = {
       wallet_address: walletAddress,
       risk_preference: "moderate",
       preferred_assets: ["ETH"],
       activity_history: [],
     };
+
     const briefing = {
       type: "information",
       priority: "medium",
@@ -39,7 +52,10 @@ describe("AIService", () => {
         },
         {
           type: "social",
-          key_points: ["Positive social media sentiment", "High engagement on crypto topics"],
+          key_points: [
+            "Positive social media sentiment",
+            "High engagement on crypto topics",
+          ],
         },
         {
           type: "wallet",
@@ -54,22 +70,29 @@ describe("AIService", () => {
     const result = await aiService.getDailyBriefing(walletAddress, userContext);
 
     expect(result).toEqual(briefing);
-    expect(mockGetDailyBriefing).toHaveBeenCalledWith(walletAddress, userContext);
+    expect(mockGetDailyBriefing).toHaveBeenCalledWith(
+      walletAddress,
+      userContext,
+    );
   });
 
   test("should send daily briefing to a user via Telegram", async () => {
+    const walletAddress = "0x123";
+    const userContext: UserContext = {
+      wallet_address: walletAddress,
+      risk_preference: "moderate",
+      preferred_assets: ["ETH"],
+      activity_history: [],
+    };
+
     const users = [
       {
         chatId: 12345,
-        walletAddress: "0x123",
-        userContext: {
-          wallet_address: "0x123",
-          risk_preference: "moderate",
-          preferred_assets: ["ETH"],
-          activity_history: [],
-        },
+        walletAddress: walletAddress,
+        userContext: userContext,
       },
     ];
+
     const briefing = {
       type: "information",
       priority: "medium",
@@ -83,7 +106,10 @@ describe("AIService", () => {
         },
         {
           type: "social",
-          key_points: ["Positive social media sentiment", "High engagement on crypto topics"],
+          key_points: [
+            "Positive social media sentiment",
+            "High engagement on crypto topics",
+          ],
         },
         {
           type: "wallet",
@@ -97,7 +123,7 @@ describe("AIService", () => {
 
     await aiService.sendBriefingsToUsers(users);
 
-    expect(mockGetDailyBriefing).toHaveBeenCalledWith("0x123", users[0].userContext);
+    expect(mockGetDailyBriefing).toHaveBeenCalledWith("0x123", userContext);
     expect(mockSendBriefing).toHaveBeenCalledWith(12345, briefing);
   });
 });

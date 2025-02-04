@@ -32,14 +32,17 @@ cron.schedule("0 8 * * *", async () => {
     }
     const users = await telegramBot.getAllConnectedUsers();
     for (const user of users) {
+      // 非 null アサーションで walletAddress が必ず存在することを示す
       const briefing = await aiService.getDailyBriefing(
-        user.walletAddress,
+        user.walletAddress!,
         user.userContext,
       );
       await telegramBot.sendBriefing(user.chatId, briefing);
       console.log(`Successfully sent briefing to user ${user.chatId}`);
     }
-    console.log(`Daily briefing task completed. Sent briefings to ${users.length} users`);
+    console.log(
+      `Daily briefing task completed. Sent briefings to ${users.length} users`,
+    );
   } catch (error) {
     console.error("Error generating daily briefings:", error);
   }
@@ -81,9 +84,8 @@ app.use(
     err: Error,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction,
+    // next: express.NextFunction,
   ) => {
-    console.log("next :", next);
     console.error("Unhandled error:", err);
     res.status(500).json({
       error: "Internal server error",

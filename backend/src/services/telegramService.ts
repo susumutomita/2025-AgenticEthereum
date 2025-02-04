@@ -1,9 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
-import {
-  TelegramUserState,
-  BOT_MESSAGES,
-} from "../types/telegram.js";
-import { aiService } from "./aiService.js";
+import { TelegramUserState, BOT_MESSAGES } from "../types/telegram.js";
+import { AIRecommendation } from "../types/ai.js";
 import type { UserContext } from "../types/ai.js";
 
 type RiskLevel = UserContext["risk_preference"];
@@ -23,47 +20,68 @@ class TelegramService {
   }
 
   private setupCommandHandlers(): void {
-    // Start command
+    // Start コマンド
     this.bot.onText(/\/start/, (msg) => {
       this.handleStart(msg.chat.id);
     });
 
-    // Help command
+    // Help コマンド
     this.bot.onText(/\/help/, (msg) => {
       this.sendMessage(msg.chat.id, BOT_MESSAGES.help);
     });
 
-    // Connect wallet command
+    // Connect wallet コマンド
     this.bot.onText(/\/connect/, (msg) => {
       this.handleConnect(msg.chat.id);
     });
 
-    // Brief command
+    // Brief コマンド
     this.bot.onText(/\/brief/, async (msg) => {
       await this.handleBrief(msg.chat.id);
     });
 
-    // Settings command
+    // Settings コマンド
     this.bot.onText(/\/settings/, (msg) => {
       this.handleSettings(msg.chat.id);
     });
 
-    // Risk command
+    // Risk コマンド
     this.bot.onText(/\/risk/, (msg) => {
       this.handleRisk(msg.chat.id);
     });
 
-    // Disconnect command
+    // Disconnect コマンド
     this.bot.onText(/\/disconnect/, (msg) => {
       this.handleDisconnect(msg.chat.id);
     });
 
-    // Handle regular messages (non-commands)
+    // 通常メッセージ（コマンド以外）の処理
     this.bot.on("message", (msg) => {
       if (!msg.text?.startsWith("/")) {
         this.handleUserInput(msg.chat.id, msg.text || "");
       }
     });
+  }
+
+  // briefing を整形して送信するメソッド
+  public async sendBriefing(
+    chatId: number,
+    briefing: AIRecommendation,
+  ): Promise<void> {
+    const message = `${briefing.title}
+${briefing.description}
+
+📈 Analysis:
+${briefing.reasoning.map((r) => `• ${r}`).join("\n")}
+
+📊 Data Sources:
+${briefing.data_sources
+  .map(
+    (ds) => `${ds.type.toUpperCase()}:
+${ds.key_points.map((p) => `- ${p}`).join("\n")}`,
+  )
+  .join("\n")}`;
+    await this.sendMessage(chatId, message);
   }
 
   private async handleStart(chatId: number): Promise<void> {
@@ -101,29 +119,14 @@ class TelegramService {
     }
 
     try {
-      const briefing = await aiService.getDailyBriefing(
-        state.walletAddress,
-        state.userContext,
+      // 非 null アサーションで walletAddress の存在を保証する
+      const briefing = await import("./aiService.js").then((module) =>
+        module.aiService.getDailyBriefing(
+          state.walletAddress!,
+          state.userContext,
+        ),
       );
-      const message = `${BOT_MESSAGES.briefingHeader}
-
-${briefing.title}
-${briefing.description}
-
-📈 Analysis:
-${briefing.reasoning.map((r) => `• ${r}`).join("\n")}
-
-📊 Data Sources:
-${briefing.data_sources
-  .map(
-    (ds) => `
-${ds.type.toUpperCase()}:
-${ds.key_points.map((p) => `- ${p}`).join("\n")}`,
-  )
-  .join("\n")}
-`;
-
-      await this.sendMessage(chatId, message);
+      await this.sendBriefing(chatId, briefing);
     } catch (error) {
       console.error("Error fetching daily briefing", error);
       await this.sendMessage(chatId, BOT_MESSAGES.error);
@@ -147,7 +150,8 @@ ${ds.key_points.map((p) => `- ${p}`).join("\n")}`,
 
   private async handleDisconnect(chatId: number): Promise<void> {
     const state = this.getUserState(chatId);
-    state.walletAddress = undefined;
+    // walletAddress を undefined ではなく空文字にして型エラーを回避
+    state.walletAddress = "";
     state.setupComplete = false;
     this.userStates.set(chatId, state);
     await this.sendMessage(chatId, BOT_MESSAGES.disconnectSuccess);

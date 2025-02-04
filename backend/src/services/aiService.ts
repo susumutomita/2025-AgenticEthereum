@@ -158,13 +158,13 @@ class AIService {
       walletAddress: string;
       userContext: UserContext;
     }>,
-    batchSize = 10
+    batchSize = 10,
   ): Promise<void> {
     if (!process.env.TELEGRAM_BOT_TOKEN) {
       throw new Error("TELEGRAM_BOT_TOKEN is required for sending briefings");
     }
     const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN!);
-    
+
     // Process users in batches
     for (let i = 0; i < users.length; i += batchSize) {
       const batch = users.slice(i, i + batchSize);
@@ -173,21 +173,26 @@ class AIService {
           const retries = 3;
           for (let attempt = 1; attempt <= retries; attempt++) {
             try {
-              const briefing = await this.getDailyBriefing(user.walletAddress, user.userContext);
+              const briefing = await this.getDailyBriefing(
+                user.walletAddress,
+                user.userContext,
+              );
               await telegramBot.sendBriefing(user.chatId, briefing);
               break;
             } catch (error) {
               if (attempt === retries) {
                 console.error(
                   `Failed to send briefing to user ${user.chatId} after ${retries} attempts:`,
-                  error
+                  error,
                 );
               } else {
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                await new Promise((resolve) =>
+                  setTimeout(resolve, 1000 * attempt),
+                );
               }
             }
           }
-        })
+        }),
       );
     }
   }
