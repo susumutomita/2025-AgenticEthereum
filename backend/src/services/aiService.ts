@@ -146,8 +146,8 @@ class AIService {
         userContext,
       );
     } catch (error) {
-      console.error('Failed to generate daily briefing:', error);
-      throw new Error('Failed to generate daily briefing');
+      console.error("Failed to generate daily briefing:", error);
+      throw new Error("Failed to generate daily briefing");
     }
   }
 }
