@@ -1,61 +1,81 @@
-import { WalletConnectButton } from "../components/wallet-connect-button";
-import { FeatureCard } from "../components/feature-card";
-import { Brain, TrendingUp, Shield } from "lucide-react";
+"use client";
+import WalletConnectButton from "../components/wallet-connect-button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 
-export default function LandingPage() {
+const TopPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center min-h-screen text-center px-4">
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in-down">
-          Welcome to CryptoDaily Brief
-        </h1>
-        <p className="text-xl md:text-2xl mb-8 max-w-2xl animate-fade-in-up">
-          Get personalized daily cryptocurrency briefings, powered by AI and
-          on-chain data.
-        </p>
-        <WalletConnectButton />
-        <div className="mt-12 animate-bounce">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 14l-7 7m0 0l-7-7m7 7V3"
-            />
-          </svg>
-        </div>
-      </section>
+    <main className="flex min-h-screen flex-col items-center justify-between p-12">
+      <div className="z-10 w-full max-w-5xl items-center justify-between text-sm lg:flex">
+        <h1 className="text-4xl font-bold mb-8">Welcome to Agentic Ethereum</h1>
+      </div>
 
-      {/* Features Section */}
-      <section className="py-20 px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-          Why Choose CryptoDaily Brief?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <FeatureCard
-            title="AI-Powered Insights"
-            description="Leverage cutting-edge AI to get personalized investment recommendations."
-            icon={Brain}
-          />
-          <FeatureCard
-            title="Real-Time Analytics"
-            description="Stay ahead with real-time on-chain data and market trends."
-            icon={TrendingUp}
-          />
-          <FeatureCard
-            title="Secure & Private"
-            description="Your data is encrypted and your privacy is our top priority."
-            icon={Shield}
-          />
+      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-3 lg:text-left gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Connect Your Wallet</CardTitle>
+            <CardDescription>
+              Connect your Ethereum wallet to get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <WalletConnectButton />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Analyze Your Portfolio</CardTitle>
+            <CardDescription>
+              Get insights into your crypto holdings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Connect your wallet to view portfolio analytics</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Optimize Your Strategy</CardTitle>
+            <CardDescription>
+              Receive personalized recommendations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>AI-powered suggestions for your portfolio</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="w-full max-w-5xl mt-12">
+        <h2 className="text-2xl font-bold mb-6">Key Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="p-6 bg-white/5 rounded-lg border border-gray-800">
+            <h3 className="text-lg font-semibold mb-2">Portfolio Tracking</h3>
+            <p>
+              Real-time monitoring of your crypto assets and performance metrics
+            </p>
+          </div>
+          <div className="p-6 bg-white/5 rounded-lg border border-gray-800">
+            <h3 className="text-lg font-semibold mb-2">Smart Analytics</h3>
+            <p>Advanced analysis tools to help you make informed decisions</p>
+          </div>
+          <div className="p-6 bg-white/5 rounded-lg border border-gray-800">
+            <h3 className="text-lg font-semibold mb-2">AI Recommendations</h3>
+            <p>
+              Personalized suggestions based on market trends and your goals
+            </p>
+          </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </main>
   );
-}
+};
+
+export default TopPage;
