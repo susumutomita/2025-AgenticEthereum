@@ -1,4 +1,4 @@
-.PHONY: install setup_husky dev	clean lint gas format format_check format_contract test	test_contract before_commit build_frontend start build_backend	build_contract export_pdf help
+.PHONY: install setup_husky devclean lint gas format format_check format_contract test test_contract before_commit build_frontend start build_backend build_contract export_pdf help
 
 # -------------------------------
 # Help
@@ -87,11 +87,14 @@ build_backend:     # Build the backend
 build_contract:    # Build contracts with Forge
 	cd contract && forge build
 
-start:             # Start the frontend via concurrently
-	npx concurrently "make start_frontend"
+start:             # Start the frontend and backend via concurrently
+	npx concurrently "make start_frontend" "make start_backend"
 
 start_frontend:    # Start the frontend in development mode
 	cd frontend && npm run dev
+
+start_backend:     # Start the backend in development mode
+	cd backend && npm run dev
 
 # -------------------------------
 # Export Documentation

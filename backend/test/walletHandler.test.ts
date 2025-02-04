@@ -1,196 +1,46 @@
-import request from "supertest";
-import express from "express";
-import axios from "axios";
-import axiosRetry from "axios-retry";
-import { walletHandler, cache } from "../src/server";
+import { walletHandler, cache } from "../src/walletHandler.js";
 
-const app = express();
-app.use(express.json());
-app.get("/api/wallet/:address", walletHandler);
-
-jest.mock("axios");
-axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
-
-describe("GET /api/wallet/:address", () => {
+describe("walletHandler", () => {
   beforeEach(() => {
-    Object.keys(cache).forEach((key) => delete cache[key]);
-    process.env.GRAPH_API_ENDPOINT = "http://dummy-endpoint";
+    // Clear the cache before each test
+    walletHandler.clearCache();
   });
 
-  it("should return wallet data", async () => {
-    const mockData = {
-      data: {
-        wallet: {
-          balance: 100,
-          transactions: [
-            { id: "1", value: 50, timestamp: 1620000000 },
-            { id: "2", value: 50, timestamp: 1620000001 },
-          ],
-        },
-      },
-    };
+  test("generates dummy data for a wallet address", () => {
+    const address = "0x123";
+    const data = walletHandler.getWalletData(address);
 
-    (axios.post as jest.Mock).mockResolvedValue({ data: mockData });
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
+    expect(data).toEqual(
+      expect.objectContaining({
+        address: address,
+        balance: expect.any(String),
+        transactions: expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(String),
+            type: expect.stringMatching(/^(send|receive)$/),
+            amount: expect.any(String),
+            date: expect.any(String),
+          }),
+        ]),
+      }),
     );
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: true,
-      data: mockData.data.wallet,
-    });
   });
 
-  it("should return 404 if wallet not found", async () => {
-    const mockData = { data: { wallet: null } };
+  test("caches wallet data", () => {
+    const address = "0x123";
+    const firstCall = walletHandler.getWalletData(address);
+    const secondCall = walletHandler.getWalletData(address);
 
-    (axios.post as jest.Mock).mockResolvedValue({ data: mockData });
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      success: false,
-      error: "Wallet not found",
-    });
+    expect(secondCall).toBe(firstCall);
+    expect(cache[address]).toBe(firstCall);
   });
 
-  it("should return 500 if GRAPH_API_ENDPOINT is not defined", async () => {
-    delete process.env.GRAPH_API_ENDPOINT; // 未定義にする
+  test("clearCache removes all cached data", () => {
+    const address = "0x123";
+    walletHandler.getWalletData(address);
+    expect(cache[address]).toBeDefined();
 
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      success: false,
-      error: "GRAPH_API_ENDPOINT is not defined",
-    });
-  });
-
-  it("should return cached data if available", async () => {
-    const mockData = {
-      balance: 100,
-      transactions: [
-        { id: "1", value: 50, timestamp: 1620000000 },
-        { id: "2", value: 50, timestamp: 1620000001 },
-      ],
-    };
-
-    // キャッシュに事前設定
-    cache["0x1234567890abcdef1234567890abcdef12345678"] = {
-      data: mockData,
-      timestamp: Date.now(),
-    };
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ success: true, data: mockData });
-  });
-
-  it("should handle axios errors", async () => {
-    // GRAPH_API_ENDPOINT が定義されている状態で axios エラーをシミュレート
-    (axios.post as jest.Mock).mockRejectedValue(new Error("Network Error"));
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      success: false,
-      error: "Error fetching wallet data",
-    });
-  });
-
-  it("should log detailed error message for missing GRAPH_API_ENDPOINT", async () => {
-    delete process.env.GRAPH_API_ENDPOINT; // 未定義にする
-
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      success: false,
-      error: "GRAPH_API_ENDPOINT is not defined",
-    });
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "GRAPH_API_ENDPOINT is not defined",
-    );
-
-    consoleSpy.mockRestore();
-  });
-
-  it("should log detailed error message for axios errors", async () => {
-    (axios.post as jest.Mock).mockRejectedValue(new Error("Network Error"));
-
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      success: false,
-      error: "Error fetching wallet data",
-    });
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Error fetching wallet data:",
-      expect.any(Error),
-    );
-
-    consoleSpy.mockRestore();
-  });
-
-  it("should handle new wallet data format", async () => {
-    const mockData = {
-      data: {
-        wallet: {
-          balance: 200,
-          transactions: [
-            { id: "1", value: 100, timestamp: 1620000000 },
-            { id: "2", value: 100, timestamp: 1620000001 },
-          ],
-        },
-      },
-    };
-
-    (axios.post as jest.Mock).mockResolvedValue({ data: mockData });
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: true,
-      data: mockData.data.wallet,
-    });
-  });
-
-  it("should handle new error handling logic", async () => {
-    (axios.post as jest.Mock).mockRejectedValue(new Error("New Error"));
-
-    const response = await request(app).get(
-      "/api/wallet/0x1234567890abcdef1234567890abcdef12345678",
-    );
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      success: false,
-      error: "Error fetching wallet data",
-    });
+    walletHandler.clearCache();
+    expect(cache[address]).toBeUndefined();
   });
 });
