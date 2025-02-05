@@ -7,11 +7,13 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Loader2 } from "lucide-react";
 
-const AUTONOME_ADDRESS = process.env.NEXT_PUBLIC_AUTONOME_ADDRESS;
-const OLAS_ADDRESS = process.env.NEXT_PUBLIC_OLAS_ADDRESS;
+const AUTONOME_ADDRESS = process.env.NEXT_PUBLIC_AUTONOME_ADDRESS || "";
+const OLAS_ADDRESS = process.env.NEXT_PUBLIC_OLAS_ADDRESS || "";
 
 if (!AUTONOME_ADDRESS || !OLAS_ADDRESS) {
-  throw new Error("Missing required environment variables: AUTONOME_ADDRESS or OLAS_ADDRESS");
+  throw new Error(
+    "Missing required environment variables: AUTONOME_ADDRESS or OLAS_ADDRESS",
+  );
 }
 
 export function AutonomeRegister() {
@@ -114,16 +116,15 @@ export function AutonomeRegister() {
           <div className="flex space-x-2">
             <Input
               type="number"
-+             min="0"
-+             step="0.000000000000000001"
+              min="0"
+              step="0.000000000000000001"
               value={stakeAmount}
--             onChange={(e) => setStakeAmount(e.target.value)}
-+             onChange={(e) => {
-+               const value = e.target.value;
-+               if (Number(value) < 0) return;
-+               if (Number(value) > Number(olasBalance)) return;
-+               setStakeAmount(value);
-+             }}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (Number(value) < 0) return;
+                if (Number(value) > Number(olasBalance)) return;
+                setStakeAmount(value);
+              }}
               placeholder="Enter amount in OLAS"
               disabled={loading}
               className="flex-1"

@@ -39,8 +39,10 @@ export class AutonomeContract {
     const parsedAmount = ethers.parseEther(amount);
     try {
       const allowance = await this.olasContract.allowance(
-        await this.olasContract.signer.getAddress(),
-        this.contract.target
+        await (
+          this.olasContract.signer as unknown as ethers.Signer
+        ).getAddress(),
+        this.contract.target,
       );
       if (allowance < parsedAmount) {
         await this.olasContract.approve(this.contract.target, parsedAmount);
@@ -48,8 +50,8 @@ export class AutonomeContract {
       const tx = await this.contract.stake(parsedAmount);
       return await tx.wait();
     } catch (error) {
-      if (error.code === 'INSUFFICIENT_FUNDS') {
-        throw new Error('Insufficient OLAS balance for staking');
+      if ((error as Error & { code?: string }).code === "INSUFFICIENT_FUNDS") {
+        throw new Error("Insufficient OLAS balance for staking");
       }
       throw error;
     }
@@ -92,8 +94,8 @@ export class AutonomeContract {
       const balance = await this.olasContract.balanceOf(address);
       return ethers.formatEther(balance);
     } catch (error) {
-      console.error('Failed to fetch OLAS balance:', error);
-      throw new Error('Failed to fetch OLAS balance. Please try again.');
+      console.error("Failed to fetch OLAS balance:", error);
+      throw new Error("Failed to fetch OLAS balance. Please try again.");
     }
   }
 }

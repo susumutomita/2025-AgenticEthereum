@@ -5,7 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {CryptoDailyBrief} from "../src/CryptoDailyBrief.sol";
 import {CryptoDailyBriefIntegration} from "../src/CryptoDailyBriefIntegration.sol";
 
-contract DeployCryptoDailyBriefScript is Script {
+contract CryptoDailyBriefScript is Script {
     function run() public {
         // .env などで OLAS_TOKEN の値を設定しておくこと
         address olasToken = vm.envAddress("OLAS_TOKEN");

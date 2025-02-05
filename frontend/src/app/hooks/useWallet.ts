@@ -1,3 +1,18 @@
+interface EthereumProvider {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  on: (eventName: string, listener: (...args: unknown[]) => void) => void;
+  removeListener: (
+    eventName: string,
+    listener: (...args: unknown[]) => void,
+  ) => void;
+}
+
+declare global {
+  interface Window {
+    ethereum?: EthereumProvider;
+  }
+}
+
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
@@ -33,14 +48,22 @@ export function useWallet() {
           const signer = await provider.getSigner();
           const network = await provider.getNetwork();
           const expectedChainId = process.env.NEXT_PUBLIC_CHAIN_ID;
-          if (expectedChainId && Number(network.chainId) !== Number(expectedChainId)) {
+          if (
+            expectedChainId &&
+            Number(network.chainId) !== Number(expectedChainId)
+          ) {
             try {
               await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: `0x${Number(expectedChainId).toString(16)}` }],
+                method: "wallet_switchEthereumChain",
+                params: [
+                  { chainId: `0x${Number(expectedChainId).toString(16)}` },
+                ],
               });
-            } catch (switchError) {
-              throw new Error(`Please switch to the correct network (Chain ID: ${expectedChainId})`);
+            } catch (_switchError) {
+              console.error("Failed to switch network:", _switchError);
+              throw new Error(
+                `Please switch to the correct network (Chain ID: ${expectedChainId})`,
+              );
             }
           }
           setState({
