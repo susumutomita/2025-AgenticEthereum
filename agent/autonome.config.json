@@ -1,0 +1,8 @@
+{
+  "agentName": "CryptoDailyBriefAgent",
+  "version": "1.0.0",
+  "teeEnabled": true,
+  "env": {
+    "WALLET_ADDRESS": "0xYourWalletAddressHere"
+  }
+}

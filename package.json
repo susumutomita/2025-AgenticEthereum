@@ -4,9 +4,11 @@
   "private": true,
   "workspaces": [
     "frontend",
+    "agent",
     "backend"
   ],
   "scripts": {
+    "start:agent": "node --loader ts-node/esm agent/agent.ts",
     "clean": "npx rimraf node_modules out",
     "test": "npm run --workspaces test",
     "test:contract": "forge test -vvv --root contract",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@marp-team/marp-cli": "^4.1.1",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/supertest": "^6.0.2",
@@ -50,6 +53,7 @@
     "textlint-rule-preset-ja-spacing": "^2.2.0",
     "textlint-rule-preset-ja-technical-writing": "^12.0.2",
     "textlint-rule-spellcheck-tech-word": "^5.0.0",
-    "ts-jest": "^29.2.5"
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2"
   }
 }
