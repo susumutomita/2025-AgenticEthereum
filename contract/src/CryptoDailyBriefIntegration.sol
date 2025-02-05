@@ -27,12 +27,15 @@ contract CryptoDailyBriefIntegration is Ownable {
     function registerAgent(uint256 serviceId) external {
         require(!registeredAgents[msg.sender], "Agent already registered");
         require(olasToken.balanceOf(msg.sender) >= 100 ether, "Insufficient OLAS tokens");
+        require(serviceRegistry.isRegistered(address(0), serviceId), "Service does not exist");
 
-        serviceRegistry.register(msg.sender, serviceId);
-        registeredAgents[msg.sender] = true;
-        agentServiceIds[msg.sender] = serviceId;
-
-        emit AgentRegistered(msg.sender, serviceId);
+        try serviceRegistry.register(msg.sender, serviceId) {
+            registeredAgents[msg.sender] = true;
+            agentServiceIds[msg.sender] = serviceId;
+            emit AgentRegistered(msg.sender, serviceId);
+        } catch {
+            revert("Service registration failed");
+        }
     }
 
     function updateServiceRegistry(address _newRegistry) external onlyOwner {
