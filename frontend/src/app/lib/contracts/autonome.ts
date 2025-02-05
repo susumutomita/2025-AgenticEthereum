@@ -37,8 +37,22 @@ export class AutonomeContract {
 
   async stake(amount: string) {
     const parsedAmount = ethers.parseEther(amount);
-    await this.olasContract.approve(this.contract.target, parsedAmount);
-    return this.contract.stake(parsedAmount);
+    try {
+      const allowance = await this.olasContract.allowance(
+        await this.olasContract.signer.getAddress(),
+        this.contract.target
+      );
+      if (allowance < parsedAmount) {
+        await this.olasContract.approve(this.contract.target, parsedAmount);
+      }
+      const tx = await this.contract.stake(parsedAmount);
+      return await tx.wait();
+    } catch (error) {
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        throw new Error('Insufficient OLAS balance for staking');
+      }
+      throw error;
+    }
   }
 
   async unstake(amount: string) {
