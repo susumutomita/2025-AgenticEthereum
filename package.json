@@ -1,13 +1,11 @@
 {
-  "name": "2025-AgenticEthereum ",
-  "version": "1.0.0",
-  "description": "2025-AgenticEthereum  repository",
-  "main": "index.js",
+  "name": "agentic-ethereum",
+  "version": "0.1.0",
+  "private": true,
   "workspaces": [
     "frontend",
     "backend"
   ],
-  "type": "module",
   "scripts": {
     "clean": "npx rimraf node_modules out",
     "test": "npm run --workspaces test",
@@ -24,10 +22,8 @@
     "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
     "install-all": "npm install && npm install --prefix frontend"
   },
-  "keywords": [],
-  "author": "Susumu Tomita <oyter880@gmail.com> (https://susumutomita.netlify.app/)",
-  "license": "MIT",
   "dependencies": {
+    "@metamask/providers": "^20.0.0",
     "dotenv": "^16.4.7",
     "typescript": "^5.4.5"
   },
