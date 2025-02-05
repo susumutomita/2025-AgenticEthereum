@@ -132,8 +132,14 @@ export function AutonomeRegister() {
             <div className="flex space-x-2">
               <Input
                 type="number"
+                min="1"
+                step="1"
                 value={serviceId}
-                onChange={(e) => setServiceId(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (Number(value) < 1) return;
+                  setServiceId(value);
+                }}
                 placeholder="Enter service ID"
                 disabled={loading}
                 className="flex-1"
