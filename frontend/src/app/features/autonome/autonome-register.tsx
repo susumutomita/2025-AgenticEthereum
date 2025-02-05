@@ -7,8 +7,12 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Loader2 } from "lucide-react";
 
-const AUTONOME_ADDRESS = process.env.NEXT_PUBLIC_AUTONOME_ADDRESS || "";
-const OLAS_ADDRESS = process.env.NEXT_PUBLIC_OLAS_ADDRESS || "";
+const AUTONOME_ADDRESS = process.env.NEXT_PUBLIC_AUTONOME_ADDRESS;
+const OLAS_ADDRESS = process.env.NEXT_PUBLIC_OLAS_ADDRESS;
+
+if (!AUTONOME_ADDRESS || !OLAS_ADDRESS) {
+  throw new Error("Missing required environment variables: AUTONOME_ADDRESS or OLAS_ADDRESS");
+}
 
 export function AutonomeRegister() {
   const [stakeAmount, setStakeAmount] = useState("");
