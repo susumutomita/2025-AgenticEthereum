@@ -103,8 +103,9 @@ contract CryptoDailyBriefTest is Test {
         vm.stopPrank();
     }
 
-    function testFailUnauthorizedServiceRegistration() public {
+    function test_RevertWhen_UnauthorizedServiceRegistration() public {
         vm.prank(agent);
+        vm.expectRevert("Unauthorized");
         cryptoDailyBrief.registerService("Test Service", "Test Description");
     }
 
