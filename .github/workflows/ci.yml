@@ -7,6 +7,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      AUTONOME_ADDRESS: ${{ secrets.AUTONOME_ADDRESS }}
+      OLAS_ADDRESS: ${{ secrets.OLAS_ADDRESS }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
