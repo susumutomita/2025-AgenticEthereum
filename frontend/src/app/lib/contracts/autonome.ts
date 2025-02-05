@@ -74,7 +74,12 @@ export class AutonomeContract {
   }
 
   async getOlasBalance(address: string) {
-    const balance = await this.olasContract.balanceOf(address);
-    return ethers.formatEther(balance);
+    try {
+      const balance = await this.olasContract.balanceOf(address);
+      return ethers.formatEther(balance);
+    } catch (error) {
+      console.error('Failed to fetch OLAS balance:', error);
+      throw new Error('Failed to fetch OLAS balance. Please try again.');
+    }
   }
 }
