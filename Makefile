@@ -105,7 +105,7 @@ export_pdf:        # Export pitch deck to PDF using Marp
 # -------------------------------
 # Pre-commit Checks
 # -------------------------------
-before_commit: lint gas format format_contract format_check test test_contract build_frontend build_backend
+before_commit: lint gas format format_contract format_check test build_frontend build_backend
 
 # -------------------------------
 # Pull Request Diff

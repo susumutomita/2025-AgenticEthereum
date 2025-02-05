@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IAutonome.sol";
+import "./interfaces/ICryptoDailyBrief.sol";
 
-contract Autonome is IAutonome, Ownable {
+contract CryptoDailyBrief is ICryptoDailyBrief, Ownable {
     // OLAS token contract
     IERC20 public immutable olasToken;
 
@@ -30,7 +30,7 @@ contract Autonome is IAutonome, Ownable {
     mapping(uint256 => Service) public services;
     uint256 public serviceCount;
 
-    // コンストラクタに "Ownable(msg.sender)" を追加
+    // コンストラクタ – オーナーはデプロイ時の送信者
     constructor(address _olasToken) Ownable(msg.sender) {
         olasToken = IERC20(_olasToken);
     }

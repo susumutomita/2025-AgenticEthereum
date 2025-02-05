@@ -9,7 +9,7 @@ interface IServiceRegistry {
     function isRegistered(address agent, uint256 serviceId) external view returns (bool);
 }
 
-contract AutonomeIntegration is Ownable {
+contract CryptoDailyBriefIntegration is Ownable {
     IServiceRegistry public serviceRegistry;
     IERC20 public olasToken;
 
@@ -26,7 +26,7 @@ contract AutonomeIntegration is Ownable {
 
     function registerAgent(uint256 serviceId) external {
         require(!registeredAgents[msg.sender], "Agent already registered");
-        require(olasToken.balanceOf(msg.sender) >= 100 ether, "Insufficient OLAS tokens"); // 要求する最小トークン量
+        require(olasToken.balanceOf(msg.sender) >= 100 ether, "Insufficient OLAS tokens");
 
         serviceRegistry.register(msg.sender, serviceId);
         registeredAgents[msg.sender] = true;

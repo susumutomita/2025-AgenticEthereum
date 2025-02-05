@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-interface IAutonome {
+interface ICryptoDailyBrief {
     // Events
     event AgentRegistered(address indexed agent, uint256 indexed serviceId);
     event AgentDeregistered(address indexed agent);
