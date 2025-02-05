@@ -20,6 +20,8 @@ contract CryptoDailyBriefIntegration is Ownable {
     event ServiceRegistryUpdated(address indexed newRegistry);
 
     constructor(address _serviceRegistry, address _olasToken) Ownable(msg.sender) {
+        require(_serviceRegistry != address(0), "Zero address not allowed for service registry");
+        require(_olasToken != address(0), "Zero address not allowed for OLAS token");
         serviceRegistry = IServiceRegistry(_serviceRegistry);
         olasToken = IERC20(_olasToken);
     }
