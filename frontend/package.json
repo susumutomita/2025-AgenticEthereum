@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
+    "@walletconnect/web3-provider": "^1.8.0",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "class-variance-authority": "^0.7.1",
@@ -22,7 +23,8 @@
     "react-dom": "^19.0.0",
     "recharts": "^2.15.1",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.0.1"
+    "tailwind-merge": "^3.0.1",
+    "web3modal": "^1.9.12"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.26.3",
@@ -32,7 +34,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8",

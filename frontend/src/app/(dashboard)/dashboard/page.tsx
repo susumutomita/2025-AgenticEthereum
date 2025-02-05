@@ -1,97 +1,47 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Line } from "react-chartjs-2";
-import "chart.js/auto";
-import { WalletData, Transaction } from "../../types/wallet";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import { Card } from "../../components/ui/card";
+import { WalletConnectButton } from "../../components/WalletConnectButton";
+import { AutonomeRegister } from "../../features/autonome/autonome-register";
+import { AutonomeServices } from "../../features/autonome/autonome-services";
+import { useWallet } from "../../hooks/useWallet";
 
-const DashboardPage = () => {
-  const [walletData, setWalletData] = useState<WalletData | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const address = "dummy-address";
-        const response = await axios.get<WalletData>(
-          `${API_URL}/api/wallet/${address}`,
-        );
-        setWalletData(response.data);
-      } catch (error) {
-        console.error("Error fetching wallet data", error);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const chartData = {
-    labels: walletData
-      ? walletData.transactions.map((tx: Transaction) => tx.date)
-      : [],
-    datasets: [
-      {
-        label: "Transaction Amount (ETH)",
-        data: walletData
-          ? walletData.transactions.map((tx: Transaction) =>
-              parseFloat(tx.amount),
-            )
-          : [],
-        fill: false,
-        backgroundColor: "rgba(75,192,192,1)",
-        borderColor: "rgba(75,192,192,0.2)",
-      },
-    ],
-  };
+export default function DashboardPage() {
+  const { isConnected } = useWallet();
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      {walletData ? (
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg p-4 shadow">
-            <p>
-              <strong>Wallet Address:</strong> {walletData.address}
-            </p>
-            <p>
-              <strong>Balance:</strong> {walletData.balance} ETH
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 shadow">
-            <h2 className="text-xl font-semibold mb-4">Transactions</h2>
-            <ul className="space-y-2">
-              {walletData.transactions.map((tx: Transaction) => (
-                <li key={tx.id} className="border-b pb-2">
-                  <div className="flex justify-between">
-                    <span
-                      className={
-                        tx.type === "receive"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }
-                    >
-                      {tx.type === "receive" ? "↓" : "↑"} {tx.amount} ETH
-                    </span>
-                    <span className="text-gray-500">{tx.date}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 shadow">
-            <h2 className="text-xl font-semibold mb-4">Transaction Chart</h2>
-            <Line data={chartData} />
-          </div>
+    <main className="container mx-auto p-6 min-h-screen">
+      <div className="flex flex-col space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Agentic Ethereum Dashboard</h1>
+          <WalletConnectButton />
         </div>
-      ) : (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      )}
-    </div>
+
+        {/* Content */}
+        {!isConnected ? (
+          <Card className="p-6">
+            <div className="text-center py-12">
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                Welcome to Agentic Ethereum
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Connect your wallet to start using the platform
+              </p>
+              <WalletConnectButton />
+            </div>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <AutonomeRegister />
+            </div>
+            <div className="space-y-6">
+              <AutonomeServices />
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
-};
-
-export default DashboardPage;
+}

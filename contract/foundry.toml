@@ -1,2 +1,14 @@
-[profile.ci.fuzz]
-runs = 10_000
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+]
+solc = "0.8.20"
+
+[fuzz]
+runs = 1000
+
+[rpc_endpoints]
+mainnet = "${ETH_RPC_URL}"
