@@ -9,6 +9,9 @@ import { createTelegramBot } from "./services/telegramService.js";
 import { aiService } from "./services/aiService.js";
 import { autonomeService } from "./services/autonomeService.js";
 
+// 新たに追加するルート
+import restakeRoutes from "./routes/restake.js";
+
 // 環境変数を読み込む
 dotenv.config();
 
@@ -105,6 +108,9 @@ app.get("/health", (req, res) => {
     },
   });
 });
+
+// 追加するリステーキング残高取得のルート
+app.use("/api", restakeRoutes);
 
 // ----------------------
 // エラーハンドリングミドルウェア
