@@ -4,7 +4,11 @@ import { useWallet } from "../hooks/useWallet";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
 
-export function WalletConnectButton() {
+interface WalletConnectButtonProps {
+  onConnect?: () => void;
+}
+
+export function WalletConnectButton({ onConnect }: WalletConnectButtonProps) {
   const { connect, disconnect, isConnected, address, loading } = useWallet();
 
   const handleClick = async () => {
@@ -12,6 +16,9 @@ export function WalletConnectButton() {
       disconnect();
     } else {
       await connect();
+      if (onConnect) {
+        onConnect();
+      }
     }
   };
 
