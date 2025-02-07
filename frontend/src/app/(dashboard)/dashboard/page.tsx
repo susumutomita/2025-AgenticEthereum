@@ -1,47 +1,116 @@
+// frontend/src/app/dashboard/page.tsx
 "use client";
 
-import { Card } from "../../components/ui/card";
-import { WalletConnectButton } from "../../components/WalletConnectButton";
-import { AutonomeRegister } from "../../features/autonome/autonome-register";
-import { AutonomeServices } from "../../features/autonome/autonome-services";
+import { useState } from "react";
 import { useWallet } from "../../hooks/useWallet";
+import { WalletConnectButton } from "../../components/WalletConnectButton";
+import { Card } from "../../components/ui/card";
+
+interface DailyBriefing {
+  type: "action" | "warning" | "information";
+  priority: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  reasoning: string[];
+  data_sources: {
+    type: "market" | "social" | "wallet";
+    key_points: string[];
+  }[];
+  timestamp: string;
+}
 
 export default function DashboardPage() {
-  const { isConnected } = useWallet();
+  const { address, isConnected } = useWallet();
+  const [briefing, setBriefing] = useState<DailyBriefing | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+
+  // AI ブリーフィング API を呼び出す関数
+  const fetchDailyBriefing = async () => {
+    if (!address) {
+      setError("ウォレットが接続されていません");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/ai/briefing?address=${address}`);
+      if (!res.ok) {
+        throw new Error("AI ブリーフィングの取得に失敗しました");
+      }
+      const data: DailyBriefing = await res.json();
+      setBriefing(data);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "不明なエラーが発生しました",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="container mx-auto p-6 min-h-screen">
-      <div className="flex flex-col space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Agentic Ethereum Dashboard</h1>
-          <WalletConnectButton />
-        </div>
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">CryptoDailyBrief Dashboard</h1>
+        <WalletConnectButton />
+      </header>
 
-        {/* Content */}
-        {!isConnected ? (
-          <Card className="p-6">
-            <div className="text-center py-12">
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                Welcome to Agentic Ethereum
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Connect your wallet to start using the platform
-              </p>
-              <WalletConnectButton />
-            </div>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              <AutonomeRegister />
-            </div>
-            <div className="space-y-6">
-              <AutonomeServices />
-            </div>
+      {!isConnected ? (
+        <Card className="p-6">
+          <div className="text-center">
+            <p>ウォレットを接続してください。</p>
+            <WalletConnectButton />
           </div>
-        )}
-      </div>
+        </Card>
+      ) : (
+        <Card className="p-6">
+          <div className="flex flex-col space-y-6">
+            <h2 className="text-2xl font-semibold">AI ブリーフィング</h2>
+            <p className="text-gray-600">
+              ボタンを押して、最新の AI ブリーフィングを取得してください。
+            </p>
+            <button
+              onClick={fetchDailyBriefing}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+              disabled={loading}
+            >
+              {loading ? "読み込み中..." : "ブリーフィングを取得"}
+            </button>
+            {error && <p className="text-red-500">{error}</p>}
+            {briefing && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="text-xl font-bold">{briefing.title}</h3>
+                <p className="mt-2">{briefing.description}</p>
+                <div className="mt-4">
+                  <h4 className="font-semibold">分析結果</h4>
+                  <ul className="list-disc ml-5">
+                    {briefing.reasoning.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <h4 className="font-semibold">データソース</h4>
+                  {briefing.data_sources.map((ds, index) => (
+                    <div key={index} className="mt-2">
+                      <p className="font-bold">{ds.type.toUpperCase()}</p>
+                      <ul className="list-disc ml-5">
+                        {ds.key_points.map((point, idx) => (
+                          <li key={idx}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-4 text-sm text-gray-500">
+                  {new Date(briefing.timestamp).toLocaleString()}
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
     </main>
   );
 }
