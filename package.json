@@ -1,10 +1,10 @@
 {
-  "name": "agentic-ethereum",
+  "name": "crypto-daily-brief",
   "version": "0.1.0",
   "private": true,
   "workspaces": [
     "frontend",
-    "cdp-chatbot",
+    "agent",
     "backend"
   ],
   "scripts": {

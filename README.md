@@ -7,7 +7,7 @@
 
 # CryptoDailyBrief – Daily Personalized Crypto Insights
 
-CryptoDaily Brief is a comprehensive platform that delivers daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions. Built as a monorepo, the project comprises three main components: a **frontend** built with Next.js, a **backend** (Node.js/Express) API, and **smart contracts** developed with Foundry. The system aggregates on-chain wallet data (via The Graph) and off-chain market sentiment and economic indicators to generate actionable recommendations through AI agents.
+CryptoDailyBrief is a comprehensive platform that delivers daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions. Built as a monorepo, the project comprises three main components: a **frontend** built with Next.js, a **backend** (Node.js/Express) API, and **smart contracts** developed with Foundry. The system aggregates on-chain wallet data (via The Graph) and off-chain market sentiment and economic indicators to generate actionable recommendations through AI agents.
 
 ## Table of Contents
 
