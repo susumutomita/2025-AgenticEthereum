@@ -1,49 +1,42 @@
 import axios from "axios";
 
-// 環境変数のチェックと設定を行う関数
-const getEnvConfig = () => {
-  // デフォルト値を設定
-  if (!process.env.AUTONOME_BASE_URL) {
-    process.env.AUTONOME_BASE_URL = "https://autonome.alt.technology";
-  }
-  if (!process.env.AUTONOME_INSTANCE_ID) {
-    process.env.AUTONOME_INSTANCE_ID = "cdb-gcqmjr";
-  }
-  if (!process.env.AUTONOME_USERNAME) {
-    process.env.AUTONOME_USERNAME = "cdb";
-  }
-  if (!process.env.AUTONOME_PASSWORD) {
-    process.env.AUTONOME_PASSWORD = "rUWoRgSYLt";
-  }
+// Autonome 用の設定情報の型定義
+export interface AutonomeConfig {
+  baseUrl: string;
+  instanceId: string;
+  username: string;
+  password: string;
+}
 
-  return {
-    baseUrl: process.env.AUTONOME_BASE_URL,
-    instanceId: process.env.AUTONOME_INSTANCE_ID,
-    username: process.env.AUTONOME_USERNAME,
-    password: process.env.AUTONOME_PASSWORD,
-  };
-};
+// 環境変数から設定値を読み込み、デフォルト値をセットする関数
+const loadAutonomeConfig = (): AutonomeConfig => ({
+  baseUrl: process.env.AUTONOME_BASE_URL ?? "https://autonome.alt.technology",
+  instanceId: process.env.AUTONOME_INSTANCE_ID ?? "",
+  username: process.env.AUTONOME_USERNAME ?? "",
+  password: process.env.AUTONOME_PASSWORD ?? "",
+});
 
-// 設定を取得
-const config = getEnvConfig();
+const config = loadAutonomeConfig();
+console.log("Autonome Config:", config);
 
-// Basic認証ヘッダの生成
-const basicAuthHeader =
-  "Basic " +
-  Buffer.from(`${config.username}:${config.password}`).toString("base64");
+// Basic認証ヘッダの生成（1度だけ計算する）
+const basicAuthHeader = `Basic ${Buffer.from(
+  `${config.username}:${config.password}`,
+).toString("base64")}`;
 
 export const autonomeService = {
   /**
-   * Autonome APIからagent一覧を取得し、最初のagentのIDを返す
+   * Autonome APIから agent 一覧を取得し、最初の agent の ID を返す
    */
   async getAgentId(): Promise<string> {
     const url = `${config.baseUrl}/${config.instanceId}/agents`;
+    console.log("Fetching agent ID from:", url);
     try {
       const response = await axios.get(url, {
         headers: { Authorization: basicAuthHeader },
       });
       const agents = response.data.agents;
-      if (agents && agents.length > 0) {
+      if (Array.isArray(agents) && agents.length > 0) {
         return agents[0].id;
       }
       throw new Error("Agentが見つかりませんでした");
@@ -54,12 +47,13 @@ export const autonomeService = {
   },
 
   /**
-   * 指定のagentIDへメッセージ送信
+   * 指定の agentID に対してメッセージを送信し、Autonome API のレスポンスデータを返す
    */
-  async sendMessage(agentId: string, message: string): Promise<void> {
+  async sendMessage(agentId: string, message: string): Promise<any> {
     const url = `${config.baseUrl}/${config.instanceId}/${agentId}/message`;
+    console.log("Sending message to:", url);
     try {
-      await axios.post(
+      const response = await axios.post(
         url,
         { text: message },
         {
@@ -69,6 +63,7 @@ export const autonomeService = {
           },
         },
       );
+      return response.data;
     } catch (error) {
       console.error("Autonomeへのメッセージ送信エラー:", error);
       throw error;

@@ -1,37 +1,36 @@
 import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
+import cron from "node-cron";
+
+// 各種サービスのインポート
 import { walletHandler } from "./walletHandler.js";
 import { createTelegramBot } from "./services/telegramService.js";
 import { aiService } from "./services/aiService.js";
-import cron from "node-cron";
 import { autonomeService } from "./services/autonomeService.js";
 
-// Load environment variables
+// 環境変数を読み込む
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
+// ミドルウェア
 app.use(cors());
 app.use(express.json());
 
-// Initialize Telegram bot
+// Telegram Bot の初期化
 if (!process.env.TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN environment variable is required");
 }
 const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 
-// Schedule daily briefing generation
+// 毎朝8時にユーザーにブリーフィングを送信する定期実行タスク
 cron.schedule("0 8 * * *", async () => {
   try {
-    if (!process.env.TELEGRAM_BOT_TOKEN) {
-      throw new Error("TELEGRAM_BOT_TOKEN is required for sending briefings");
-    }
     const users = await telegramBot.getAllConnectedUsers();
     for (const user of users) {
-      // 非 null アサーションで walletAddress の存在を保証
+      // walletAddress が存在することを保証して、ブリーフィングを取得
       const briefing = await aiService.getDailyBriefing(
         user.walletAddress!,
         user.userContext,
@@ -83,10 +82,12 @@ app.post("/api/autonome/message", async (req, res) => {
     return res.status(400).json({ error: "textフィールドは必須です" });
   }
   try {
-    // agentIdが指定されていない場合は自動的に最初のagentのIDを取得
+    // agentIdが指定されていなければ、最初のagentのIDを取得
     const finalAgentId = agentId || (await autonomeService.getAgentId());
-    await autonomeService.sendMessage(finalAgentId, text);
-    res.json({ success: true, agentId: finalAgentId });
+    const messageResult = await autonomeService.sendMessage(finalAgentId, text);
+    res
+      .status(200)
+      .json({ success: true, agentId: finalAgentId, messageResult });
   } catch (error) {
     console.error("Error in /api/autonome/message:", error);
     res.status(500).json({ error: "Autonomeへのメッセージ送信に失敗しました" });
@@ -116,7 +117,7 @@ app.use((err: Error, req: express.Request, res: express.Response) => {
   });
 });
 
-// Start server
+// サーバーの起動
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
