@@ -5,7 +5,7 @@ import { walletHandler } from "./walletHandler.js";
 import { createTelegramBot } from "./services/telegramService.js";
 import { aiService } from "./services/aiService.js";
 import cron from "node-cron";
-import "./types/env.js";
+import { autonomeService } from "./services/autonomeService.js";
 
 // Load environment variables
 dotenv.config();
@@ -21,7 +21,6 @@ app.use(express.json());
 if (!process.env.TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN environment variable is required");
 }
-
 const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // Schedule daily briefing generation
@@ -32,7 +31,7 @@ cron.schedule("0 8 * * *", async () => {
     }
     const users = await telegramBot.getAllConnectedUsers();
     for (const user of users) {
-      // 非 null アサーションで walletAddress が必ず存在することを示す
+      // 非 null アサーションで walletAddress の存在を保証
       const briefing = await aiService.getDailyBriefing(
         user.walletAddress!,
         user.userContext,
@@ -48,7 +47,11 @@ cron.schedule("0 8 * * *", async () => {
   }
 });
 
-// API Routes
+// ----------------------
+// API Endpoints
+// ----------------------
+
+// 1. Wallet Data取得エンドポイント
 app.get("/api/wallet/:address", (req, res) => {
   const { address } = req.params;
   try {
@@ -60,13 +63,37 @@ app.get("/api/wallet/:address", (req, res) => {
   }
 });
 
+// 2. 通知設定エンドポイント（将来的な実装用）
 app.post("/api/notification/settings", (req, res) => {
-  // const { chatId, enabled, time } = req.body;
   // TODO: Implement notification settings
   res.json({ success: true });
 });
 
-// Health check endpoint
+// 3. Autonomeへメッセージ送信エンドポイント
+/**
+ * リクエストボディ例:
+ * {
+ *   "text": "hi",
+ *   "agentId": "（任意、指定しない場合は最初のagentを使用）"
+ * }
+ */
+app.post("/api/autonome/message", async (req, res) => {
+  const { text, agentId } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: "textフィールドは必須です" });
+  }
+  try {
+    // agentIdが指定されていない場合は自動的に最初のagentのIDを取得
+    const finalAgentId = agentId || (await autonomeService.getAgentId());
+    await autonomeService.sendMessage(finalAgentId, text);
+    res.json({ success: true, agentId: finalAgentId });
+  } catch (error) {
+    console.error("Error in /api/autonome/message:", error);
+    res.status(500).json({ error: "Autonomeへのメッセージ送信に失敗しました" });
+  }
+});
+
+// 4. Health Checkエンドポイント
 app.get("/health", (req, res) => {
   res.json({
     status: "healthy",
@@ -78,21 +105,16 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    // next: express.NextFunction,
-  ) => {
-    console.error("Unhandled error:", err);
-    res.status(500).json({
-      error: "Internal server error",
-      message: process.env.NODE_ENV === "development" ? err.message : undefined,
-    });
-  },
-);
+// ----------------------
+// エラーハンドリングミドルウェア
+// ----------------------
+app.use((err: Error, req: express.Request, res: express.Response) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal server error",
+    message: process.env.NODE_ENV === "development" ? err.message : undefined,
+  });
+});
 
 // Start server
 app.listen(port, () => {

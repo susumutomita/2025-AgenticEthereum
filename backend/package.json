@@ -11,14 +11,15 @@
     "lint": "eslint '**/*.{ts,yaml,yml}'",
     "test": "jest --coverage  --verbose --silent --forceExit",
     "test:ci": "jest --coverage --verbose --silent --forceExit",
-    "dev": "ts-node src/server.ts",
-    "start": "node dist/server.js"
+    "dev": "tsx src/bootstrap.ts",
+    "start": "node dist/bootstrap.js"
   },
   "dependencies": {
     "axios": "^1.6.5",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "node-cron": "^3.0.3",
     "node-telegram-bot-api": "^0.64.0",
     "zod": "^3.22.4"
   },

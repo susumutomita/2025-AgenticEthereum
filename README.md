@@ -5,13 +5,13 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/susumutomita/2025-AgenticEthereum)
 [![CI](https://img.shields.io/github/actions/workflow/status/susumutomita/2025-AgenticEthereum/ci.yml?branch=main)](https://github.com/susumutomita/2025-AgenticEthereum/actions/workflows/ci.yml)
 
-# CryptoDaily Brief – Daily Personalized Crypto Insights
+# CryptoDailyBrief – Daily Personalized Crypto Insights
 
 CryptoDaily Brief is a comprehensive platform that delivers daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions. Built as a monorepo, the project comprises three main components: a **frontend** built with Next.js, a **backend** (Node.js/Express) API, and **smart contracts** developed with Foundry. The system aggregates on-chain wallet data (via The Graph) and off-chain market sentiment and economic indicators to generate actionable recommendations through AI agents.
 
 ## Table of Contents
 
-- [CryptoDaily Brief – Daily Personalized Crypto Insights](#cryptodaily-brief--daily-personalized-crypto-insights)
+- [CryptoDailyBrief – Daily Personalized Crypto Insights](#cryptodailybrief--daily-personalized-crypto-insights)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Architecture \& Technologies](#architecture--technologies)
