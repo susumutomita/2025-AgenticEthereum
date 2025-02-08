@@ -1,119 +1,69 @@
-// SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/ICryptoDailyBrief.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "forge-std/console.sol"; // Foundry のデバッグ用
 
-contract CryptoDailyBrief is ICryptoDailyBrief, Ownable {
-    // OLAS token contract
-    IERC20 public immutable olasToken;
+contract CryptoDailyBrief is ERC1155, Ownable {
+    using Strings for uint256;
 
-    // Minimum stake required for registration
-    uint256 public constant MIN_STAKE = 100 ether; // 100 OLAS
+    uint256 public nextTokenId;
+    mapping(uint256 => uint256) public stakeAmounts;
+    mapping(uint256 => address) public stakeOwners;
 
-    // Structures
-    struct Agent {
-        uint256 serviceId;
-        uint256 stakedAmount;
-        bool isRegistered;
+    event Staked(address indexed user, uint256 tokenId, uint256 amount);
+    event Unstaked(address indexed user, uint256 tokenId, uint256 amount);
+
+    constructor() ERC1155("") Ownable(msg.sender) {}
+
+    function stake() external payable {
+        require(msg.value > 0, "Must send ETH to stake");
+
+        uint256 tokenId = nextTokenId++;
+        _mint(msg.sender, tokenId, 1, "");
+
+        stakeAmounts[tokenId] = msg.value;
+        stakeOwners[tokenId] = msg.sender;
+
+        emit Staked(msg.sender, tokenId, msg.value);
     }
 
-    struct Service {
-        string name;
-        string description;
-        bool active;
+    function unstake(uint256 tokenId) external {
+        // デバッグ出力
+        console.log("unstake: caller", uint160(msg.sender));
+        console.log("unstake: recorded owner", uint160(stakeOwners[tokenId]));
+        console.log("unstake: contract balance", address(this).balance);
+        console.log("unstake: stake amount", stakeAmounts[tokenId]);
+
+        require(balanceOf(msg.sender, tokenId) > 0, "You do not own this NFT");
+        require(stakeOwners[tokenId] == msg.sender, "Not the original staker");
+
+        uint256 amount = stakeAmounts[tokenId];
+        require(amount > 0, "No stake amount found");
+
+        // ステーク情報をクリア
+        stakeAmounts[tokenId] = 0;
+        stakeOwners[tokenId] = address(0);
+
+        _burn(msg.sender, tokenId, 1);
+        payable(msg.sender).transfer(amount);
+
+        emit Unstaked(msg.sender, tokenId, amount);
     }
 
-    // State variables
-    mapping(address => Agent) public agents;
-    mapping(uint256 => Service) public services;
-    uint256 public serviceCount;
+    fallback() external payable {}
+    receive() external payable {}
 
-    // コンストラクタ – オーナーはデプロイ時の送信者
-    constructor(address _olasToken) Ownable(msg.sender) {
-        olasToken = IERC20(_olasToken);
-    }
-
-    // Agent registration
-    function registerAgent(uint256 serviceId) external override {
-        require(!agents[msg.sender].isRegistered, "Agent already registered");
-        require(services[serviceId].active, "Service not active");
-        require(agents[msg.sender].stakedAmount >= MIN_STAKE, "Insufficient stake");
-
-        agents[msg.sender] =
-            Agent({serviceId: serviceId, stakedAmount: agents[msg.sender].stakedAmount, isRegistered: true});
-
-        emit AgentRegistered(msg.sender, serviceId);
-    }
-
-    function deregisterAgent() external override {
-        require(agents[msg.sender].isRegistered, "Agent not registered");
-
-        delete agents[msg.sender].serviceId;
-        agents[msg.sender].isRegistered = false;
-
-        emit AgentDeregistered(msg.sender);
-    }
-
-    function isAgentRegistered(address agent) external view override returns (bool) {
-        return agents[agent].isRegistered;
-    }
-
-    function getAgentServiceId(address agent) external view override returns (uint256) {
-        require(agents[agent].isRegistered, "Agent not registered");
-        return agents[agent].serviceId;
-    }
-
-    // Service management
-    function registerService(string memory name, string memory description)
-        external
-        override
-        onlyOwner
-        returns (uint256)
-    {
-        serviceCount++;
-        services[serviceCount] = Service({name: name, description: description, active: true});
-
-        emit ServiceRegistered(serviceCount, name, description);
-        return serviceCount;
-    }
-
-    function getService(uint256 serviceId)
-        external
-        view
-        override
-        returns (string memory name, string memory description, bool active)
-    {
-        Service memory service = services[serviceId];
-        return (service.name, service.description, service.active);
-    }
-
-    function getServiceCount() external view override returns (uint256) {
-        return serviceCount;
-    }
-
-    // Stakeholding
-    function stake(uint256 amount) external override {
-        require(amount > 0, "Amount must be greater than 0");
-        require(olasToken.transferFrom(msg.sender, address(this), amount), "Transfer failed");
-
-        agents[msg.sender].stakedAmount += amount;
-    }
-
-    function unstake(uint256 amount) external override {
-        require(amount > 0, "Amount must be greater than 0");
-        require(agents[msg.sender].stakedAmount >= amount, "Insufficient stake");
-        require(
-            !agents[msg.sender].isRegistered || agents[msg.sender].stakedAmount - amount >= MIN_STAKE,
-            "Cannot unstake below minimum while registered"
-        );
-
-        agents[msg.sender].stakedAmount -= amount;
-        require(olasToken.transfer(msg.sender, amount), "Transfer failed");
-    }
-
-    function getStake(address agent) external view override returns (uint256) {
-        return agents[agent].stakedAmount;
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    "https://susumutomita.github.io/2025-AgenticEthereum/metadata/",
+                    tokenId.toString(),
+                    ".json"
+                )
+            );
     }
 }
