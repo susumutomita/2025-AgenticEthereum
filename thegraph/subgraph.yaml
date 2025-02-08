@@ -1,0 +1,44 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CryptoDailyBrief
+    network: base-sepolia
+    source:
+      address: "0xf25b72298d0655D968d53a88509D8fFf4E6fb3fd"
+      abi: CryptoDailyBrief
+      startBlock: 21634544
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ApprovalForAll
+        - OwnershipTransferred
+        - Staked
+        - TransferBatch
+        - TransferSingle
+        - URI
+        - Unstaked
+      abis:
+        - name: CryptoDailyBrief
+          file: ./abis/CryptoDailyBrief.json
+      eventHandlers:
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Staked(indexed address,uint256,uint256)
+          handler: handleStaked
+        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+          handler: handleTransferBatch
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: URI(string,indexed uint256)
+          handler: handleURI
+        - event: Unstaked(indexed address,uint256,uint256)
+          handler: handleUnstaked
+      file: ./src/crypto-daily-brief.ts
