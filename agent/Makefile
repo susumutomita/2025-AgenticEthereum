@@ -23,6 +23,10 @@ run:
 		-e OPENAI_API_KEY \
 		-e CDP_API_KEY_NAME \
 		-e CDP_API_KEY_PRIVATE_KEY \
+		-e NETWORK_ID \
+		-e API_TARGET \
+		-e GROQ_API_KEY \
+		-e GROQ_MODEL \
 		$(DOCKER_IMAGE)
 
 .PHONY: push
