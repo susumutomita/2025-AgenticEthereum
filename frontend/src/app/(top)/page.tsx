@@ -1,10 +1,15 @@
-// app/DashboardPage.tsx (一例)
+// src/app/DashboardPage.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { useWallet } from "../hooks/useWallet";
 import { WalletConnectButton } from "../components/WalletConnectButton";
 import { Card } from "../components/ui/card";
+
+// ↓ カードコンポーネント群をインポート
 import { ChatInterface } from "../components/ChatInterface";
+import { WalletBalanceCard } from "../components/WalletBalanceCard";
+import { TransactionHistoryCard } from "../components/TransactionHistoryCard";
+import { TwitterFeedCard } from "../components/TwitterFeedCard";
 
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -12,11 +17,9 @@ import "react-resizable/css/styles.css";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-// カードの基本スタイル
 const unifiedCardClass =
   "p-6 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl shadow-xl";
 
-// レイアウト
 const layouts = {
   lg: [
     { i: "chat", x: 0, y: 0, w: 6, h: 8, minH: 4 },
@@ -52,6 +55,7 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
+  // 未接続の場合
   if (!isConnected) {
     return (
       <main className="container mx-auto p-6 min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
@@ -61,8 +65,7 @@ export default function DashboardPage() {
               Welcome to CryptoDailyBrief
             </h2>
             <p className="mb-6">
-              CryptoDailyBrief delivers daily crypto insights that empower
-              investors to optimize portfolios, manage risks, and plan taxes.
+              CryptoDailyBrief delivers daily crypto insights...
             </p>
             <div className="inline-block p-1 border-2 border-white rounded">
               <WalletConnectButton />
@@ -99,71 +102,30 @@ export default function DashboardPage() {
             compactType="vertical"
             preventCollision={false}
             autoSize={true}
-            // ---ここがポイント---
             draggableCancel=".no-drag"
           >
-            {/* チャットはドラッグ不可にしたい → divに .no-drag */}
+            {/* 1) チャット */}
             <div key="chat" className="h-full no-drag">
               <ChatInterface />
             </div>
 
-            <Card key="wallet" className={unifiedCardClass}>
-              <h2 className="text-xl font-semibold mb-4 text-blue-400">
-                Wallet Balance
-              </h2>
-              <div className="space-y-4">
-                <p className="text-sm text-gray-500">Address: {address}</p>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-md font-semibold mb-2">ETH</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Balance</p>
-                        <p className="text-lg font-bold">0.0 ETH</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">USD Equivalent</p>
-                        <p className="text-lg font-bold">$0.00</p>
-                      </div>
-                    </div>
-                  </div>
+            {/* 2) ウォレット残高（コンポーネント化） */}
+            <div key="wallet">
+              <WalletBalanceCard
+                address={address}
+                unifiedCardClass={unifiedCardClass}
+              />
+            </div>
 
-                  <div>
-                    <h3 className="text-md font-semibold mb-2">ERC20 Tokens</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500">USDC</p>
-                        <p className="text-lg font-bold">0.0</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">USDT</p>
-                        <p className="text-lg font-bold">0.0</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">DAI</p>
-                        <p className="text-lg font-bold">0.0</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
+            {/* 3) 取引履歴 */}
+            <div key="history">
+              <TransactionHistoryCard unifiedCardClass={unifiedCardClass} />
+            </div>
 
-            <Card key="history" className={unifiedCardClass}>
-              <h2 className="text-xl font-semibold mb-4">
-                Transaction History
-              </h2>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-500">No recent transactions.</p>
-              </div>
-            </Card>
-
-            <Card key="twitter" className={unifiedCardClass}>
-              <h2 className="text-xl font-semibold mb-4">Twitter Feed</h2>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-500">Loading...</p>
-              </div>
-            </Card>
+            {/* 4) Twitter */}
+            <div key="twitter">
+              <TwitterFeedCard unifiedCardClass={unifiedCardClass} />
+            </div>
           </ResponsiveGridLayout>
         </div>
       </div>
