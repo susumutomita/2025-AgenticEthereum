@@ -1,11 +1,8 @@
-// src/app/DashboardPage.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { useWallet } from "../hooks/useWallet";
 import { WalletConnectButton } from "../components/WalletConnectButton";
 import { Card } from "../components/ui/card";
-
-// ↓ カードコンポーネント群をインポート
 import { ChatInterface } from "../components/ChatInterface";
 import { WalletBalanceCard } from "../components/WalletBalanceCard";
 import { TransactionHistoryCard } from "../components/TransactionHistoryCard";
@@ -22,28 +19,10 @@ const unifiedCardClass =
 
 const layouts = {
   lg: [
-    { i: "chat", x: 0, y: 0, w: 6, h: 8, minH: 4 },
-    { i: "wallet", x: 6, y: 0, w: 6, h: 6, minH: 3 },
-    { i: "history", x: 6, y: 6, w: 6, h: 3, minH: 2 },
-    { i: "twitter", x: 6, y: 9, w: 6, h: 3, minH: 2 },
-  ],
-  md: [
-    { i: "chat", x: 0, y: 0, w: 6, h: 8, minH: 4 },
-    { i: "wallet", x: 6, y: 0, w: 6, h: 6, minH: 3 },
-    { i: "history", x: 6, y: 6, w: 6, h: 3, minH: 2 },
-    { i: "twitter", x: 6, y: 9, w: 6, h: 3, minH: 2 },
-  ],
-  sm: [
-    { i: "chat", x: 0, y: 0, w: 12, h: 6, minH: 4 },
-    { i: "wallet", x: 0, y: 6, w: 12, h: 5, minH: 3 },
-    { i: "history", x: 0, y: 11, w: 12, h: 4, minH: 3 },
-    { i: "twitter", x: 0, y: 15, w: 12, h: 4, minH: 3 },
-  ],
-  xs: [
-    { i: "chat", x: 0, y: 0, w: 12, h: 6, minH: 4 },
-    { i: "wallet", x: 0, y: 6, w: 12, h: 5, minH: 3 },
-    { i: "history", x: 0, y: 11, w: 12, h: 4, minH: 3 },
-    { i: "twitter", x: 0, y: 15, w: 12, h: 4, minH: 3 },
+    { i: "chat", x: 0, y: 0, w: 6, h: 9, minH: 4 }, // チャット 左
+    { i: "wallet", x: 0, y: 0, w: 6, h: 6, minH: 3 }, // ウォレット 右上
+    { i: "history", x: 6, y: 0, w: 6, h: 3, minH: 3 }, // 履歴 右中央
+    { i: "twitter", x: 6, y: 3, w: 6, h: 3, minH: 3 }, // Twitter 右下
   ],
 };
 
@@ -55,7 +34,6 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
-  // 未接続の場合
   if (!isConnected) {
     return (
       <main className="container mx-auto p-6 min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
@@ -94,14 +72,14 @@ export default function DashboardPage() {
             layouts={layouts}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
             cols={{ lg: 12, md: 12, sm: 12, xs: 12 }}
-            rowHeight={40}
-            margin={[16, 16]}
-            containerPadding={[0, 0]}
+            rowHeight={50} // 行の高さを調整
+            margin={[10, 10]} // 隙間を均等に
+            containerPadding={[10, 10]} // 余白調整
             isDraggable={true}
             isResizable={true}
-            compactType="vertical"
-            preventCollision={false}
-            autoSize={true}
+            compactType={null} // 縦の詰めを無効化
+            preventCollision={true} // 重なりを防止
+            autoSize={false} // サイズの自動変更を無効化
             draggableCancel=".no-drag"
           >
             {/* 1) チャット */}
@@ -109,8 +87,8 @@ export default function DashboardPage() {
               <ChatInterface />
             </div>
 
-            {/* 2) ウォレット残高（コンポーネント化） */}
-            <div key="wallet">
+            {/* 2) ウォレット残高 */}
+            <div key="wallet" className="h-full">
               <WalletBalanceCard
                 address={address}
                 unifiedCardClass={unifiedCardClass}
@@ -118,7 +96,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 3) 取引履歴 */}
-            <div key="history">
+            <div key="history" className="h-full">
               <TransactionHistoryCard unifiedCardClass={unifiedCardClass} />
             </div>
 
