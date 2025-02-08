@@ -1,3 +1,4 @@
+// app/DashboardPage.tsx (一例)
 "use client";
 import React, { useState, useEffect } from "react";
 import { useWallet } from "../hooks/useWallet";
@@ -11,14 +12,13 @@ import "react-resizable/css/styles.css";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-// カードの基本スタイル（overflowは外す）
+// カードの基本スタイル
 const unifiedCardClass =
   "p-6 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl shadow-xl";
 
-// レイアウト設定
+// レイアウト
 const layouts = {
   lg: [
-    // チャットの横幅6,高さ8に変更（rowHeightと合わせて適宜調整）
     { i: "chat", x: 0, y: 0, w: 6, h: 8, minH: 4 },
     { i: "wallet", x: 6, y: 0, w: 6, h: 6, minH: 3 },
     { i: "history", x: 6, y: 6, w: 6, h: 3, minH: 2 },
@@ -31,7 +31,6 @@ const layouts = {
     { i: "twitter", x: 6, y: 9, w: 6, h: 3, minH: 2 },
   ],
   sm: [
-    // スマホ幅はすべて1列に
     { i: "chat", x: 0, y: 0, w: 12, h: 6, minH: 4 },
     { i: "wallet", x: 0, y: 6, w: 12, h: 5, minH: 3 },
     { i: "history", x: 0, y: 11, w: 12, h: 4, minH: 3 },
@@ -100,13 +99,14 @@ export default function DashboardPage() {
             compactType="vertical"
             preventCollision={false}
             autoSize={true}
+            // ---ここがポイント---
+            draggableCancel=".no-drag"
           >
-            {/* チャット */}
-            <div key="chat" className="h-full">
+            {/* チャットはドラッグ不可にしたい → divに .no-drag */}
+            <div key="chat" className="h-full no-drag">
               <ChatInterface />
             </div>
 
-            {/* ウォレット */}
             <Card key="wallet" className={unifiedCardClass}>
               <h2 className="text-xl font-semibold mb-4 text-blue-400">
                 Wallet Balance
@@ -149,7 +149,6 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* トランザクション履歴 */}
             <Card key="history" className={unifiedCardClass}>
               <h2 className="text-xl font-semibold mb-4">
                 Transaction History
@@ -159,7 +158,6 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* Twitter */}
             <Card key="twitter" className={unifiedCardClass}>
               <h2 className="text-xl font-semibold mb-4">Twitter Feed</h2>
               <div className="space-y-2">
