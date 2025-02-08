@@ -14,7 +14,7 @@ import { MemorySaver } from "@langchain/langgraph";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
-import { ChatGroq } from "@langchain/groq"; // 仮の例。プロジェクトに合わせて調整してください。
+import { ChatGroq } from "@langchain/groq";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
@@ -23,13 +23,73 @@ dotenv.config();
 
 import express, { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
+import swaggerUi from "swagger-ui-express";
+import swaggerJSDoc from "swagger-jsdoc";
 
+// Swagger 定義の設定
+const swaggerDefinition = {
+  openapi: "3.0.0",
+  info: {
+    title: "Agent API",
+    version: "1.0.0",
+    description: "Coinbase AgentKit を利用した API のドキュメント",
+  },
+  servers: [
+    {
+      url: `http://localhost:${process.env.PORT || 3000}`,
+    },
+  ],
+};
+const swaggerOptions = {
+  swaggerDefinition,
+  // このファイル内の Swagger アノテーションを読み込みます
+  apis: [__filename],
+};
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+/**
+ * @swagger
+ * /chat:
+ *   post:
+ *     summary: エージェントとのチャット
+ *     description: ユーザーのテキストをエージェントに送信し、応答を受け取ります。
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 example: "Hello, Agent!"
+ *     responses:
+ *       200:
+ *         description: エージェントの応答を含むオブジェクト
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 text:
+ *                   type: string
+ *                   example: "This is the agent's response."
+ *       400:
+ *         description: リクエストが不正
+ *       500:
+ *         description: 内部サーバーエラー
+ */
 async function startAgentServer() {
   const app = express();
   const port = process.env.PORT || 3000;
 
   // JSON ボディをパースするミドルウェア
   app.use(bodyParser.json());
+
+  // Swagger UI のエンドポイント (/api-docs) を追加
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // /chat エンドポイントの実装
   app.post("/chat", (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +107,7 @@ async function startAgentServer() {
       // ユーザーのメッセージをエージェントへ渡し、ストリーミング応答を取得
       const stream = await agent.stream(
         { messages: [new HumanMessage(text)] },
-        config
+        config,
       );
       let fullResponse = "";
       for await (const chunk of stream) {
@@ -65,6 +125,7 @@ async function startAgentServer() {
 
   app.listen(port, () => {
     console.log(`Agent API server is listening on port ${port}`);
+    console.log(`Swagger UI available at http://localhost:${port}/api-docs`);
   });
 }
 
@@ -92,7 +153,7 @@ function validateEnvironment(): void {
   }
   if (!process.env.NETWORK_ID) {
     console.warn(
-      "Warning: NETWORK_ID not set, defaulting to base-sepolia testnet"
+      "Warning: NETWORK_ID not set, defaulting to base-sepolia testnet",
     );
   }
 }
@@ -136,7 +197,10 @@ async function initializeAgent() {
 
     const config = {
       apiKeyName: process.env.CDP_API_KEY_NAME,
-      apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
+        /\\n/g,
+        "\n",
+      ),
       cdpWalletData: walletDataStr || undefined,
       networkId: process.env.NETWORK_ID || "base-sepolia",
     };
@@ -151,11 +215,17 @@ async function initializeAgent() {
         erc20ActionProvider(),
         cdpApiActionProvider({
           apiKeyName: process.env.CDP_API_KEY_NAME,
-          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
+            /\\n/g,
+            "\n",
+          ),
         }),
         cdpWalletActionProvider({
           apiKeyName: process.env.CDP_API_KEY_NAME,
-          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
+            /\\n/g,
+            "\n",
+          ),
         }),
       ],
     });
@@ -203,7 +273,7 @@ async function runAutonomousMode(agent: any, config: any, interval = 10) {
         "Choose an action or set of actions and execute it that highlights your abilities.";
       const stream = await agent.stream(
         { messages: [new HumanMessage(thought)] },
-        config
+        config,
       );
       for await (const chunk of stream) {
         if ("agent" in chunk) {
@@ -239,7 +309,7 @@ async function runChatMode(agent: any, config: any) {
       }
       const stream = await agent.stream(
         { messages: [new HumanMessage(userInput)] },
-        config
+        config,
       );
       for await (const chunk of stream) {
         if ("agent" in chunk) {
@@ -304,7 +374,7 @@ async function main() {
 
 /*
   MODE 環境変数で動作モードを切り替えます:
-    - MODE=server なら API サーバーモード（/chat エンドポイント経由）
+    - MODE=server なら API サーバーモード（Swagger UI 経由で /chat エンドポイントをテスト可）
     - MODE=cli    なら CLI モードで対話
   MODE が設定されていない場合はデフォルトで CLI モードになります。
 */
