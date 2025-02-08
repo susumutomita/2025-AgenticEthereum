@@ -1,0 +1,15 @@
+{
+  "name": "Restaking NFT #1",
+  "description": "This NFT represents an EigenLayer restaking deposit.",
+  "image": "https://susumutomita.github.io/2025-AgenticEthereum/images/logo.png",
+  "attributes": [
+    {
+      "trait_type": "Stake Amount",
+      "value": "0.01 ETH"
+    },
+    {
+      "trait_type": "Restaking Provider",
+      "value": "EigenLayer"
+    }
+  ]
+}
