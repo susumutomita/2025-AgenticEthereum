@@ -21,70 +21,22 @@ const getAuthHeader = (cfg: AutonomeConfig): string => {
 
 export const autonomeService = {
   /**
-   * Fetch the first Agent's ID from the Autonome API.
-   * Optionally pass { autonome: { ... } } to override the default config.
-   *
-   * Usage example (in your Express route):
-   *   const agentId = await autonomeService.getAgentId({ autonome });
-   */
-  async getAgentId(overrides?: { autonome?: AutonomeConfig }): Promise<string> {
-    const cfg = overrides?.autonome ?? defaultConfig;
-    const finalUrl = `${cfg.baseUrl}/${cfg.instanceId}/agents`;
-
-    const headers: Record<string, string> = {
-      Authorization: getAuthHeader(cfg),
-    };
-
-    logger.info(`[getAgentId] GET ${finalUrl}`);
-    logger.info(`[getAgentId] Using headers: ${JSON.stringify(headers)}`);
-
-    try {
-      const response = await axios.get(finalUrl, { headers });
-      logger.info(
-        `[getAgentId] Response data: ${JSON.stringify(response.data)}`,
-      );
-
-      const agents = response.data.agents;
-      if (Array.isArray(agents) && agents.length > 0) {
-        return agents[0].id;
-      }
-      throw new Error("No agents found in the response.");
-    } catch (error: any) {
-      logger.error("[getAgentId] Failed to fetch agent ID.");
-      if (error.response) {
-        logger.error(
-          `[getAgentId] HTTP Status: ${error.response.status} ${error.response.statusText}`,
-        );
-        logger.error(
-          `[getAgentId] Response body: ${JSON.stringify(error.response.data)}`,
-        );
-      } else if (error.request) {
-        logger.error("[getAgentId] No response received from Autonome.");
-      } else {
-        logger.error(`[getAgentId] Error during setup: ${error.message}`);
-      }
-      throw error;
-    }
-  },
-
-  /**
    * Send a message to a specific Agent via the Autonome API.
    * Optionally pass payload.autonome to override the default config.
    *
    * Usage example (in your Express route):
    *   const result = await autonomeService.sendMessage({
-   *       text,
+   *       message,
    *       agentId: finalAgentId,
    *       autonome
    *   });
    */
   async sendMessage(payload: {
-    text: string;
-    agentId: string;
+    message: string;
     autonome?: AutonomeConfig;
   }): Promise<any> {
     const cfg = payload.autonome ?? defaultConfig;
-    const finalUrl = `${cfg.baseUrl}/${cfg.instanceId}/${payload.agentId}/message`;
+    const finalUrl = `${cfg.baseUrl}/${cfg.instanceId}/message`;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -93,14 +45,14 @@ export const autonomeService = {
 
     logger.info(`[sendMessage] POST ${finalUrl}`);
     logger.info(
-      `[sendMessage] Request payload: ${JSON.stringify({ text: payload.text })}`,
+      `[sendMessage] Request payload: ${JSON.stringify({ text: payload.message })}`,
     );
     logger.info(`[sendMessage] Using headers: ${JSON.stringify(headers)}`);
 
     try {
       const response = await axios.post(
         finalUrl,
-        { text: payload.text },
+        { message: payload.message },
         { headers },
       );
       logger.info(

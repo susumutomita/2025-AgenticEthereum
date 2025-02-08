@@ -59,9 +59,9 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *           schema:
  *             type: object
  *             required:
- *               - text
+ *               - message
  *             properties:
- *               text:
+ *               message:
  *                 type: string
  *                 example: "Hello, Agent!"
  *               autonome:
@@ -99,30 +99,24 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *         description: Message sending failed
  */
 app.post("/api/v1/message", async (req, res) => {
-  const { text, agentId, autonome } = req.body;
+  const { message, agentId, autonome } = req.body;
 
   // Log the incoming request body
   logger.info("[POST /api/v1/message] Incoming request body:", req.body);
 
-  if (!text) {
+  if (!message) {
     return res.status(400).json({ error: "text field is required" });
   }
 
   try {
-    // If agentId is not provided, fetch it from Autonome
-    const finalAgentId =
-      agentId || (await autonomeService.getAgentId({ autonome }));
-
-    // Send the message
     const messageResult = await autonomeService.sendMessage({
-      text,
-      agentId: finalAgentId,
+      message,
       autonome,
     });
 
     return res.status(200).json({
       success: true,
-      agentId: finalAgentId,
+      agentId: agentId,
       messageResult,
     });
   } catch (error: any) {

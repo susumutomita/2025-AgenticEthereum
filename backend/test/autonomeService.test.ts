@@ -13,58 +13,6 @@ describe("autonomeService", () => {
     jest.clearAllMocks();
   });
 
-  describe("getAgentId", () => {
-    it("should return the first agent's ID when the API response is valid", async () => {
-      // Arrange
-      mockedAxios.get.mockResolvedValueOnce({
-        data: {
-          agents: [{ id: "agent-123" }, { id: "agent-456" }],
-        },
-      });
-
-      // Act
-      const agentId = await autonomeService.getAgentId();
-
-      // Assert
-      expect(agentId).toBe("agent-123");
-      expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        "https://autonome.alt.technology/your-instance-id/agents",
-        expect.objectContaining({
-          headers: { Authorization: expect.any(String) },
-        }),
-      );
-    });
-
-    it("should throw an error when no agents are found", async () => {
-      mockedAxios.get.mockResolvedValueOnce({
-        data: { agents: [] },
-      });
-
-      await expect(autonomeService.getAgentId()).rejects.toThrow(
-        "No agents found in the response.",
-      );
-      expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-    });
-
-    it("should log and rethrow an error if the request fails (e.g., 500)", async () => {
-      const error500 = new Error("Something went wrong");
-      // axios のエラーは通常 response プロパティを持つので付与する
-      (error500 as any).response = {
-        status: 500,
-        statusText: "Internal Server Error",
-        data: { message: "Something went wrong" },
-      };
-
-      mockedAxios.get.mockRejectedValueOnce(error500);
-
-      await expect(autonomeService.getAgentId()).rejects.toThrowError(
-        "Something went wrong",
-      );
-      expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe("sendMessage", () => {
     it("should send a message and return response data when successful", async () => {
       // Arrange
@@ -74,16 +22,15 @@ describe("autonomeService", () => {
 
       // Act
       const res = await autonomeService.sendMessage({
-        text: "Hello, Agent!",
-        agentId: "agent-123",
+        message: "Hello, Agent!",
       });
 
       // Assert
       expect(res).toEqual({ result: "Message delivered" });
       expect(mockedAxios.post).toHaveBeenCalledTimes(1);
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        "https://autonome.alt.technology/your-instance-id/agent-123/message",
-        { text: "Hello, Agent!" },
+        "https://autonome.alt.technology/your-instance-id/message",
+        { message: "Hello, Agent!" },
         expect.objectContaining({
           headers: {
             "Content-Type": "application/json",
@@ -105,15 +52,14 @@ describe("autonomeService", () => {
       });
 
       const res = await autonomeService.sendMessage({
-        text: "Hi with custom config",
-        agentId: "agent-999",
+        message: "Hi with custom config",
         autonome: customConfig,
       });
 
       expect(res).toEqual({ result: "Custom config message delivered" });
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        "https://custom-autonome.example.com/custom-instance/agent-999/message",
-        { text: "Hi with custom config" },
+        "https://custom-autonome.example.com/custom-instance/message",
+        { message: "Hi with custom config" },
         expect.objectContaining({
           headers: {
             "Content-Type": "application/json",
@@ -135,8 +81,7 @@ describe("autonomeService", () => {
 
       await expect(
         autonomeService.sendMessage({
-          text: "Test error handling",
-          agentId: "nonexistent-agent",
+          message: "Test error handling",
         }),
       ).rejects.toThrowError("Agent not found");
       expect(mockedAxios.post).toHaveBeenCalledTimes(1);

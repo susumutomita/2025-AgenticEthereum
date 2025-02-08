@@ -7,7 +7,7 @@
 
 # CryptoDailyBrief – Daily Personalized Crypto Insights
 
-CryptoDailyBrief is a comprehensive platform that delivers daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions. Built as a monorepo, the project comprises three main components: a **frontend** built with Next.js, a **backend** (Node.js/Express) API, and **smart contracts** developed with Foundry. The system aggregates on-chain wallet data (via The Graph) and off-chain market sentiment and economic indicators to generate actionable recommendations through AI agents.
+CryptoDailyBrief is a comprehensive platform that delivers daily, personalized crypto asset insights to help investors optimize their portfolios, manage risk, and plan tax actions. The project comprises four main components: **AI agents** powered by Autonome and Agent Kit working on Base Network. The system aggregates on-chain wallet data (via The Graph) and off-chain market sentiment and economic indicators to generate actionable recommendations through AI agents.
 
 ## Table of Contents
 
@@ -35,7 +35,7 @@ CryptoDailyBrief is a comprehensive platform that delivers daily, personalized c
   Aggregates wallet data (transactions, balances) via The Graph and enriches it with market sentiment, economic indicators, and relevant news through open APIs.
 
 - **AI-Powered Insights:**
-  AI agents built with Autonome/AgentKit analyze historical and real-time data to generate specific action items, such as “rebalance portfolio” or “consider tax-loss harvesting.”
+  AI agents built with Autonome analyze historical and real-time data to generate specific action items, such as "rebalance portfolio" or "consider tax-loss harvesting."
 
 - **Interactive Dashboard:**
   A user-friendly Next.js dashboard displays dynamic charts (via Chart.js/D3.js), graphs, and real-time notifications.
@@ -51,28 +51,40 @@ CryptoDailyBrief is a comprehensive platform that delivers daily, personalized c
 - **Frontend:**
   - Next.js (App Router) with TypeScript
   - React, Chart.js, Axios, Socket.IO for real-time updates
+  - TailwindCSS for styling
   - Hosted on Vercel
 
 - **Backend:**
   - Node.js & Express for REST API
+  - TypeScript for type safety
   - Axios for HTTP requests, Socket.IO for real-time communication
+  - Jest for testing
   - Hosted as a Vercel Serverless Function or on an alternative platform (e.g., Render) if needed
+
+- **AI Agent:**
+  - Autonome for building and managing AI agents
+  - Docker for containerization
+  - TypeScript implementation
+  - Sophisticated logging and monitoring
+  - Configurable through environment variables
 
 - **Blockchain & Smart Contracts:**
   - The Graph for querying on-chain wallet data
-  - Solidity smart contracts developed with Foundry (Foundry, Forge)
+  - Solidity smart contracts developed with Foundry
+  - OpenZeppelin contracts for security and standards
   - Smart contract interactions integrated with the backend API
 
 - **AI & Security:**
-  - Autonome/AgentKit for building AI agents that generate personalized insights
+  - Autonome for building AI agents that generate personalized insights
   - Lit Protocol for secure, decentralized authentication
 
 ## Installation
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v14 or higher)
+- [Node.js](https://nodejs.org/) (v18 or higher)
 - [Git](https://git-scm.com/)
+- [Docker](https://www.docker.com/) (for running AI agents)
 - [Foundry](https://book.getfoundry.sh/) (for smart contract development)
 - A code editor (e.g., VSCode)
 
@@ -89,27 +101,31 @@ CryptoDailyBrief is a comprehensive platform that delivers daily, personalized c
    ```bash
    make install
    ```
-   This will install npm packages for the frontend and backend. For the contracts, ensure Foundry is installed and run:
-   ```bash
-   cd contracts && forge install
-   ```
 
 3. **Configure Environment Variables:**
-   Create necessary `.env` files in the **backend** and **contracts** directories (if needed) with required API keys and configuration (e.g., The Graph endpoint, wallet keys, etc.).
+   Create necessary `.env` files in the **backend**, **agent**, and **contracts** directories with required API keys and configuration.
 
 ## Usage
 
 1. **Start the Backend Server:**
    ```bash
    cd backend
-   npm start
+   npm run dev
    ```
-2. **Start the Frontend App:**
+
+2. **Start the AI Agent:**
+   ```bash
+   cd agent
+   docker-compose up
+   ```
+
+3. **Start the Frontend App:**
    ```bash
    cd frontend
-   npm start
+   npm run dev
    ```
-3. **Access the Dashboard:**
+
+4. **Access the Dashboard:**
    Open your browser at `http://localhost:3000` to see your personalized crypto insights dashboard.
 
 ## Development
@@ -118,7 +134,7 @@ CryptoDailyBrief is a comprehensive platform that delivers daily, personalized c
   The backend uses The Graph API to fetch blockchain data and Socket.IO for real-time communication. The frontend displays this data dynamically via an interactive dashboard.
 
 - **AI Agent Implementation:**
-  AI agents analyze your wallet and market data to generate personalized recommendations.
+  AI agents analyze your wallet and market data to generate personalized recommendations. The agents run in Docker containers and communicate with the backend via a defined API.
 
 - **Smart Contract Interaction:**
   Smart contracts manage automated actions (like token rewards) and are developed using Foundry. Testing and deployment are managed with Forge.
@@ -127,24 +143,23 @@ CryptoDailyBrief is a comprehensive platform that delivers daily, personalized c
   Use the provided Makefile to run common tasks:
 
   ```makefile
-  install:           # Install npm packages for frontend and backend
+  install:              # Install dependencies for all components
       npm install
+      cd frontend && npm install
+      cd backend && npm install
+      cd agent && npm install
 
-  build_frontend:    # Build the Next.js frontend
-      cd frontend && npm run build
+  dev:                 # Start development servers
+      make -j4 dev_frontend dev_backend dev_agent
 
-  build_backend:     # Build backend (if applicable)
-      cd backend && npm run build
+  build:               # Build all components
+      make build_frontend build_backend build_agent
 
-  test:              # Run tests for frontend and backend
-      make test_frontend
-      make test_backend
+  test:                # Run all tests
+      make test_frontend test_backend test_contract
 
-  test_frontend:
-      cd frontend && npm run test
-
-  test_backend:
-      cd backend && npm run test
+  clean:               # Clean build artifacts
+      rm -rf **/dist **/build **/.next
   ```
 
 ## Deployment
@@ -154,6 +169,9 @@ CryptoDailyBrief is a comprehensive platform that delivers daily, personalized c
 
 - **Backend:**
   Can be deployed on Vercel using Serverless Functions or an alternative such as Render for persistent services.
+
+- **AI Agent:**
+  Deployed using Docker containers, either on a cloud provider or dedicated server.
 
 - **Smart Contracts:**
   Deployed on testnets (e.g., Sepolia) using Foundry. Future production deployment can be considered based on project maturity.
