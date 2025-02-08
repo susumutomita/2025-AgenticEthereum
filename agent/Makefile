@@ -15,7 +15,8 @@ DOCKER_IMAGE = $(DOCKER_USERNAME)/$(IMAGE_NAME):$(TAG)
 
 .PHONY: build
 build:
-	docker build -t $(DOCKER_IMAGE) .
+	# 指定したプラットフォーム (linux/amd64) 用にビルド
+	docker build --platform linux/amd64 -t $(DOCKER_IMAGE) .
 
 .PHONY: run
 run:
@@ -27,6 +28,7 @@ run:
 		-e API_TARGET \
 		-e GROQ_API_KEY \
 		-e GROQ_MODEL \
+		-e MODE \
 		$(DOCKER_IMAGE)
 
 .PHONY: push
@@ -47,7 +49,7 @@ shell:
 .PHONY: help
 help:
 	@echo "Available commands:"
-	@echo "  make build    - Build the Docker image"
+	@echo "  make build    - Build the Docker image (targeting linux/amd64)"
 	@echo "  make run      - Run the container"
 	@echo "  make push     - Push the image to DockerHub (build automatically if image is not found)"
 	@echo "  make all      - Build and push the image"

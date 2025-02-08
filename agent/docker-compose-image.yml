@@ -1,6 +1,7 @@
 services:
   chatbot:
     image: susumutomita/crypto-daily-brief-cdp-chatbot:latest
+    platform: linux/amd64
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CDP_API_KEY_NAME: ${CDP_API_KEY_NAME}
