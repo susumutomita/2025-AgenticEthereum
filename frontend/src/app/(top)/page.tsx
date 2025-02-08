@@ -123,7 +123,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 4) Twitter */}
-            <div key="twitter">
+            <div key="twitter" className="h-full no-drag">
               <TwitterFeedCard unifiedCardClass={unifiedCardClass} />
             </div>
           </ResponsiveGridLayout>
