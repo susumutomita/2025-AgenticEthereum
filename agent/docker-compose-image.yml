@@ -1,8 +1,6 @@
 services:
-  crypto-daily-brief-cdp-chatbot:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  chatbot:
+    image: susumutomita/crypto-daily-brief-cdp-chatbot:latest
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CDP_API_KEY_NAME: ${CDP_API_KEY_NAME}
