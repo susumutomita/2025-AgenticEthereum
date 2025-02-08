@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card } from "./ui/card";
-import { BrowserProvider,  formatEther } from "ethers";
+import { BrowserProvider, formatEther } from "ethers";
 
 interface WalletBalanceCardProps {
   address: string | null;
