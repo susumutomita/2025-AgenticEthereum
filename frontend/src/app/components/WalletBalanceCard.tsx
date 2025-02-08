@@ -1,21 +1,7 @@
-// src/app/components/WalletBalanceCard.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card } from "./ui/card";
-import { BrowserProvider, Contract, formatEther, formatUnits } from "ethers";
-
-// ※ window.ethereum の型は global.d.ts にて定義済みとする
-
-const TOKEN_ADDRESSES = {
-  USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606EB48",
-  USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-  DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-};
-
-const ERC20_ABI = [
-  "function balanceOf(address) view returns (uint256)",
-  "function decimals() view returns (uint8)",
-];
+import { BrowserProvider,  formatEther } from "ethers";
 
 interface WalletBalanceCardProps {
   address: string | null;
@@ -27,54 +13,33 @@ export function WalletBalanceCard({
   unifiedCardClass,
 }: WalletBalanceCardProps) {
   const [ethBalance, setEthBalance] = useState("0.0");
-  const [usdcBalance, setUsdcBalance] = useState("0.0");
-  const [usdtBalance, setUsdtBalance] = useState("0.0");
-  const [daiBalance, setDaiBalance] = useState("0.0");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!address) return;
-    if (!window.ethereum) return; // MetaMask 等が存在しない場合
+    if (!window.ethereum) return; // MetaMask などが存在しない場合
 
-    // EIP-1193 Provider を BrowserProvider でラップ
     const provider = new BrowserProvider(window.ethereum);
 
     const fetchBalances = async () => {
       try {
-        // 1) ETH
+        // 1) ETH 残高取得
         const rawEthBalance = await provider.getBalance(address);
         setEthBalance(formatEther(rawEthBalance));
 
-        // 2) USDC
+        // 2) ERC20 (USDC) のデバッグ用 - 一旦コメントアウト
+        /*
         const usdcContract = new Contract(
-          TOKEN_ADDRESSES.USDC,
-          ERC20_ABI,
-          provider,
+          "0x5dEaC602762362FE5f135FA5904351916053cF70", // USDC
+          ["function symbol() view returns (string)"], // symbol() を試す
+          provider
         );
-        const usdcDecimals = await usdcContract.decimals();
-        const usdcRaw = await usdcContract.balanceOf(address);
-        setUsdcBalance(formatUnits(usdcRaw, usdcDecimals));
-
-        // 3) USDT
-        const usdtContract = new Contract(
-          TOKEN_ADDRESSES.USDT,
-          ERC20_ABI,
-          provider,
-        );
-        const usdtDecimals = await usdtContract.decimals();
-        const usdtRaw = await usdtContract.balanceOf(address);
-        setUsdtBalance(formatUnits(usdtRaw, usdtDecimals));
-
-        // 4) DAI
-        const daiContract = new Contract(
-          TOKEN_ADDRESSES.DAI,
-          ERC20_ABI,
-          provider,
-        );
-        const daiDecimals = await daiContract.decimals();
-        const daiRaw = await daiContract.balanceOf(address);
-        setDaiBalance(formatUnits(daiRaw, daiDecimals));
+        const usdcSymbol = await usdcContract.symbol();
+        console.log("USDC Symbol:", usdcSymbol);
+        */
       } catch (err: unknown) {
         console.error("Error fetching balances:", err);
+        setError("Failed to fetch balances. Check console for details.");
       }
     };
 
@@ -108,30 +73,8 @@ export function WalletBalanceCard({
             </div>
           </div>
 
-          {/* ERC20 Tokens */}
-          <div>
-            <h3 className="text-md font-semibold mb-2">ERC20 Tokens</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">USDC</p>
-                <p className="text-lg font-bold">
-                  {parseFloat(usdcBalance).toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">USDT</p>
-                <p className="text-lg font-bold">
-                  {parseFloat(usdtBalance).toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">DAI</p>
-                <p className="text-lg font-bold">
-                  {parseFloat(daiBalance).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* エラー表示 */}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
       </div>
     </Card>
