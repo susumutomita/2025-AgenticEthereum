@@ -60,9 +60,9 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
  *           schema:
  *             type: object
  *             required:
- *               - text
+ *               - message
  *             properties:
- *               text:
+ *               message:
  *                 type: string
  *                 example: "Hello, Agent!"
  *     responses:
@@ -103,19 +103,19 @@ async function startAgentServer() {
         return res.status(200).json({ status: "ok" });
       }
 
-      const { text } = req.body;
-      if (!text || typeof text !== "string") {
+      const { message } = req.body;
+      if (!message || typeof message !== "string") {
         logger.warn("Invalid request received", { body: req.body });
         return res
           .status(400)
           .json({ error: "Invalid request: 'text' field is required." });
       }
 
-      logger.info("Processing chat request", { text });
+      logger.info("Processing chat request", { message });
       try {
         const { agent, config } = await initializeAgent();
         const stream = await agent.stream(
-          { messages: [new HumanMessage(text)] },
+          { messages: [new HumanMessage(message)] },
           config,
         );
         let fullResponse = "";
