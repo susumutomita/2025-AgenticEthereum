@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import fetch from "node-fetch";
 
 // Twitterが返すJSONの型定義 (簡易)
 interface TwitterData {
