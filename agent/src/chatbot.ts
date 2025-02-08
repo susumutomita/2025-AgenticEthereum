@@ -14,12 +14,120 @@ import { MemorySaver } from "@langchain/langgraph";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
-import { ChatGroq } from "@langchain/groq"; // 仮の例。実際のパッケージ名はプロジェクトに合わせてください。
+import { ChatGroq } from "@langchain/groq";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
 
 dotenv.config();
+
+import express, { Request, Response, NextFunction } from "express";
+import bodyParser from "body-parser";
+import swaggerUi from "swagger-ui-express";
+import swaggerJSDoc from "swagger-jsdoc";
+
+// Swagger 定義の設定
+const swaggerDefinition = {
+  openapi: "3.0.0",
+  info: {
+    title: "Agent API",
+    version: "1.0.0",
+    description: "Coinbase AgentKit を利用した API のドキュメント",
+  },
+  servers: [
+    {
+      url: `http://localhost:${process.env.PORT || 3000}`,
+    },
+  ],
+};
+const swaggerOptions = {
+  swaggerDefinition,
+  // このファイル内の Swagger アノテーションを読み込みます
+  apis: [__filename],
+};
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+/**
+ * @swagger
+ * /chat:
+ *   post:
+ *     summary: エージェントとのチャット
+ *     description: ユーザーのテキストをエージェントに送信し、応答を受け取ります。
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 example: "Hello, Agent!"
+ *     responses:
+ *       200:
+ *         description: エージェントの応答を含むオブジェクト
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 text:
+ *                   type: string
+ *                   example: "This is the agent's response."
+ *       400:
+ *         description: リクエストが不正
+ *       500:
+ *         description: 内部サーバーエラー
+ */
+async function startAgentServer() {
+  const app = express();
+  const port = process.env.PORT || 3000;
+
+  // JSON ボディをパースするミドルウェア
+  app.use(bodyParser.json());
+
+  // Swagger UI のエンドポイント (/api-docs) を追加
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+  // /chat エンドポイントの実装
+  app.post("/chat", (req: Request, res: Response, next: NextFunction) => {
+    (async () => {
+      const { text } = req.body;
+      if (!text || typeof text !== "string") {
+        return res
+          .status(400)
+          .json({ error: "Invalid request: 'text' field is required." });
+      }
+
+      // エージェントを初期化（実運用時はキャッシュするなど工夫してください）
+      const { agent, config } = await initializeAgent();
+
+      // ユーザーのメッセージをエージェントへ渡し、ストリーミング応答を取得
+      const stream = await agent.stream(
+        { messages: [new HumanMessage(text)] },
+        config,
+      );
+      let fullResponse = "";
+      for await (const chunk of stream) {
+        if (
+          "agent" in chunk &&
+          chunk.agent.messages &&
+          chunk.agent.messages[0]
+        ) {
+          fullResponse += chunk.agent.messages[0].content;
+        }
+      }
+      res.json({ text: fullResponse });
+    })().catch(next);
+  });
+
+  app.listen(port, () => {
+    console.log(`Agent API server is listening on port ${port}`);
+    console.log(`Swagger UI available at http://localhost:${port}/api-docs`);
+  });
+}
 
 function validateEnvironment(): void {
   const missingVars: string[] = [];
@@ -39,9 +147,7 @@ function validateEnvironment(): void {
   if (missingVars.length > 0) {
     console.error("Error: Required environment variables are not set");
     missingVars.forEach((varName) => {
-      console.error(
-        `${varName}=your_${varName.toLowerCase().replace(/ or /g, "_or_")}_here`,
-      );
+      console.error(`${varName}=your_${varName.toLowerCase()}_here`);
     });
     process.exit(1);
   }
@@ -58,7 +164,7 @@ const WALLET_DATA_FILE = "wallet_data.txt";
 
 async function initializeAgent() {
   try {
-    // LLM の初期化: API_TARGET でどのプロバイダーを使うか切り替える
+    // LLM の初期化：環境変数 API_TARGET によって使用するプロバイダーを切り替え
     let llm;
     const target = process.env.API_TARGET || "openai";
     if (target === "groq") {
@@ -144,9 +250,10 @@ async function initializeAgent() {
         encourage them to implement it themselves using the CDP SDK + Agentkit, recommend they go to
         docs.cdp.coinbase.com for more information. Be concise and helpful with your responses. Refrain from
         restating your tools' descriptions unless it is explicitly requested.
-        `,
+      `,
     });
 
+    // エージェントのウォレットデータをエクスポートし、ファイルに保存
     const exportedWallet = await walletProvider.exportWallet();
     fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
 
@@ -265,10 +372,25 @@ async function main() {
   }
 }
 
+/*
+  MODE 環境変数で動作モードを切り替えます:
+    - MODE=server なら API サーバーモード（Swagger UI 経由で /chat エンドポイントをテスト可）
+    - MODE=cli    なら CLI モードで対話
+  MODE が設定されていない場合はデフォルトで CLI モードになります。
+*/
 if (require.main === module) {
-  console.log("Starting Agent...");
-  main().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
+  const modeEnv = process.env.MODE?.toLowerCase();
+  if (modeEnv === "server") {
+    console.log("Starting Agent API server...");
+    startAgentServer().catch((error) => {
+      console.error("Failed to start agent server:", error);
+      process.exit(1);
+    });
+  } else {
+    console.log("Starting Agent in CLI mode...");
+    main().catch((error) => {
+      console.error("Fatal error:", error);
+      process.exit(1);
+    });
+  }
 }
