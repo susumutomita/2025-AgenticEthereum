@@ -1,18 +1,4 @@
-interface EthereumProvider {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on: (eventName: string, listener: (...args: unknown[]) => void) => void;
-  removeListener: (
-    eventName: string,
-    listener: (...args: unknown[]) => void,
-  ) => void;
-}
-
-declare global {
-  interface Window {
-    ethereum?: EthereumProvider;
-  }
-}
-
+// src/app/hooks/useWallet.ts
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
@@ -86,14 +72,14 @@ export function useWallet() {
     checkConnection();
 
     if (typeof window !== "undefined" && window.ethereum) {
-      window.ethereum.on("accountsChanged", checkConnection);
-      window.ethereum.on("chainChanged", checkConnection);
+      window.ethereum.on?.("accountsChanged", checkConnection);
+      window.ethereum.on?.("chainChanged", checkConnection);
     }
 
     return () => {
       if (typeof window !== "undefined" && window.ethereum) {
-        window.ethereum.removeListener("accountsChanged", checkConnection);
-        window.ethereum.removeListener("chainChanged", checkConnection);
+        window.ethereum.removeListener?.("accountsChanged", checkConnection);
+        window.ethereum.removeListener?.("chainChanged", checkConnection);
       }
     };
   }, []);
