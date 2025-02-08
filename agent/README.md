@@ -124,7 +124,7 @@ Set the environment variable `MODE=server` and start the application. This will 
 npm start
 ```
 
-Use the Swagger UI to send JSON requests to the `/chat` endpoint.
+Use the Swagger UI to send JSON requests to the `/message` endpoint.
 
 ### Interactive CLI Mode
 
