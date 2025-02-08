@@ -18,6 +18,7 @@ import { ChatGroq } from "@langchain/groq";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
+import logger from "./logger";
 
 dotenv.config();
 
@@ -26,13 +27,13 @@ import bodyParser from "body-parser";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
 
-// Swagger 定義の設定
+// --- Swagger Setup ---
 const swaggerDefinition = {
   openapi: "3.0.0",
   info: {
     title: "Agent API",
     version: "1.0.0",
-    description: "Coinbase AgentKit を利用した API のドキュメント",
+    description: "API documentation for the Coinbase AgentKit based service",
   },
   servers: [
     {
@@ -42,7 +43,6 @@ const swaggerDefinition = {
 };
 const swaggerOptions = {
   swaggerDefinition,
-  // このファイル内の Swagger アノテーションを読み込みます
   apis: [__filename],
 };
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
@@ -51,8 +51,8 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
  * @swagger
  * /chat:
  *   post:
- *     summary: エージェントとのチャット
- *     description: ユーザーのテキストをエージェントに送信し、応答を受け取ります。
+ *     summary: Chat with the agent
+ *     description: Sends a text message to the agent and returns its response.
  *     requestBody:
  *       required: true
  *       content:
@@ -67,7 +67,7 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
  *                 example: "Hello, Agent!"
  *     responses:
  *       200:
- *         description: エージェントの応答を含むオブジェクト
+ *         description: Agent response
  *         content:
  *           application/json:
  *             schema:
@@ -77,59 +77,62 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
  *                   type: string
  *                   example: "This is the agent's response."
  *       400:
- *         description: リクエストが不正
+ *         description: Bad request
  *       500:
- *         description: 内部サーバーエラー
+ *         description: Internal server error
  */
 async function startAgentServer() {
+  logger.info("Starting Agent API server...");
   const app = express();
   const port = process.env.PORT || 3000;
 
-  // JSON ボディをパースするミドルウェア
   app.use(bodyParser.json());
-
-  // Swagger UI のエンドポイント (/api-docs) を追加
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  // /chat エンドポイントの実装
   app.post("/chat", (req: Request, res: Response, next: NextFunction) => {
     (async () => {
       const { text } = req.body;
       if (!text || typeof text !== "string") {
+        logger.warn("Invalid request received", { body: req.body });
         return res
           .status(400)
           .json({ error: "Invalid request: 'text' field is required." });
       }
 
-      // エージェントを初期化（実運用時はキャッシュするなど工夫してください）
-      const { agent, config } = await initializeAgent();
-
-      // ユーザーのメッセージをエージェントへ渡し、ストリーミング応答を取得
-      const stream = await agent.stream(
-        { messages: [new HumanMessage(text)] },
-        config,
-      );
-      let fullResponse = "";
-      for await (const chunk of stream) {
-        if (
-          "agent" in chunk &&
-          chunk.agent.messages &&
-          chunk.agent.messages[0]
-        ) {
-          fullResponse += chunk.agent.messages[0].content;
+      logger.info("Processing chat request", { text });
+      try {
+        const { agent, config } = await initializeAgent();
+        const stream = await agent.stream(
+          { messages: [new HumanMessage(text)] },
+          config,
+        );
+        let fullResponse = "";
+        for await (const chunk of stream) {
+          if (
+            "agent" in chunk &&
+            chunk.agent.messages &&
+            chunk.agent.messages[0]
+          ) {
+            fullResponse += chunk.agent.messages[0].content;
+          }
         }
+        logger.info("Agent response", { response: fullResponse });
+        res.json({ text: fullResponse });
+      } catch (error) {
+        logger.error("Error processing chat request", { error });
+        next(error);
       }
-      res.json({ text: fullResponse });
     })().catch(next);
   });
 
   app.listen(port, () => {
-    console.log(`Agent API server is listening on port ${port}`);
-    console.log(`Swagger UI available at http://localhost:${port}/api-docs`);
+    logger.info(`Agent API server is listening on port ${port}`);
+    logger.info(`Swagger UI available at http://localhost:${port}/api-docs`);
   });
 }
 
 function validateEnvironment(): void {
+  logger.info("Validating environment variables...");
   const missingVars: string[] = [];
   const requiredVars = ["CDP_API_KEY_NAME", "CDP_API_KEY_PRIVATE_KEY"];
   if (
@@ -145,17 +148,16 @@ function validateEnvironment(): void {
     }
   });
   if (missingVars.length > 0) {
-    console.error("Error: Required environment variables are not set");
+    logger.error("Missing required environment variables", { missingVars });
     missingVars.forEach((varName) => {
       console.error(`${varName}=your_${varName.toLowerCase()}_here`);
     });
     process.exit(1);
   }
   if (!process.env.NETWORK_ID) {
-    console.warn(
-      "Warning: NETWORK_ID not set, defaulting to base-sepolia testnet",
-    );
+    logger.warn("NETWORK_ID not set, defaulting to base-sepolia testnet");
   }
+  logger.info("Environment validation completed");
 }
 
 validateEnvironment();
@@ -163,8 +165,8 @@ validateEnvironment();
 const WALLET_DATA_FILE = "wallet_data.txt";
 
 async function initializeAgent() {
+  logger.info("Initializing agent...");
   try {
-    // LLM の初期化：環境変数 API_TARGET によって使用するプロバイダーを切り替え
     let llm;
     const target = process.env.API_TARGET || "openai";
     if (target === "groq") {
@@ -172,26 +174,27 @@ async function initializeAgent() {
         model: process.env.GROQ_MODEL || "llama3-70b-8192",
         apiKey: process.env.GROQ_API_KEY,
       });
-      console.log("Using GROQ as the LLM provider.");
+      logger.info("Using GROQ as the LLM provider");
     } else if (target === "ollama") {
       llm = new ChatOllama({
         model: process.env.OLLAMA_MODEL || "llama3.1:latest",
         baseUrl: process.env.OLLAMA_ENDPOINT || "http://localhost:11434",
       });
-      console.log("Using Ollama as the LLM provider.");
+      logger.info("Using Ollama as the LLM provider");
     } else {
       llm = new ChatOpenAI({
         model: "gpt-4o-mini",
       });
-      console.log("Using OpenAI as the LLM provider.");
+      logger.info("Using OpenAI as the LLM provider");
     }
 
     let walletDataStr: string | null = null;
     if (fs.existsSync(WALLET_DATA_FILE)) {
       try {
         walletDataStr = fs.readFileSync(WALLET_DATA_FILE, "utf8");
+        logger.info("Successfully read wallet data from file");
       } catch (error) {
-        console.error("Error reading wallet data:", error);
+        logger.error("Error reading wallet data file", { error });
       }
     }
 
@@ -206,6 +209,8 @@ async function initializeAgent() {
     };
 
     const walletProvider = await CdpWalletProvider.configureWithWallet(config);
+    logger.info("Wallet provider configured successfully");
+
     const agentkit = await AgentKit.from({
       walletProvider,
       actionProviders: [
@@ -229,6 +234,7 @@ async function initializeAgent() {
         }),
       ],
     });
+    logger.info("AgentKit initialized successfully");
 
     const tools = await getLangChainTools(agentkit);
     const memory = new MemorySaver();
@@ -252,20 +258,21 @@ async function initializeAgent() {
         restating your tools' descriptions unless it is explicitly requested.
       `,
     });
+    logger.info("Agent created successfully");
 
-    // エージェントのウォレットデータをエクスポートし、ファイルに保存
     const exportedWallet = await walletProvider.exportWallet();
     fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
+    logger.info("Wallet data exported and saved successfully");
 
     return { agent, config: agentConfig };
   } catch (error) {
-    console.error("Failed to initialize agent:", error);
+    logger.error("Failed to initialize agent", { error });
     throw error;
   }
 }
 
 async function runAutonomousMode(agent: any, config: any, interval = 10) {
-  console.log("Starting autonomous mode...");
+  logger.info("Starting autonomous mode...");
   while (true) {
     try {
       const thought =
@@ -278,13 +285,20 @@ async function runAutonomousMode(agent: any, config: any, interval = 10) {
       for await (const chunk of stream) {
         if ("agent" in chunk) {
           console.log(chunk.agent.messages[0].content);
+          logger.info("Agent response received", {
+            content: chunk.agent.messages[0].content,
+          });
         } else if ("tools" in chunk) {
           console.log(chunk.tools.messages[0].content);
+          logger.info("Tool response received", {
+            content: chunk.tools.messages[0].content,
+          });
         }
         console.log("-------------------");
       }
       await new Promise((resolve) => setTimeout(resolve, interval * 1000));
     } catch (error) {
+      logger.error("Error in autonomous mode", { error });
       if (error instanceof Error) {
         console.error("Error:", error.message);
       }
@@ -294,6 +308,7 @@ async function runAutonomousMode(agent: any, config: any, interval = 10) {
 }
 
 async function runChatMode(agent: any, config: any) {
+  logger.info("Starting chat mode...");
   console.log("Starting chat mode... Type 'exit' to end.");
   const rl = readline.createInterface({
     input: process.stdin,
@@ -305,8 +320,10 @@ async function runChatMode(agent: any, config: any) {
     while (true) {
       const userInput = await question("\nPrompt: ");
       if (userInput.toLowerCase() === "exit") {
+        logger.info("Chat mode terminated by user");
         break;
       }
+      logger.info("Processing user input", { userInput });
       const stream = await agent.stream(
         { messages: [new HumanMessage(userInput)] },
         config,
@@ -314,13 +331,20 @@ async function runChatMode(agent: any, config: any) {
       for await (const chunk of stream) {
         if ("agent" in chunk) {
           console.log(chunk.agent.messages[0].content);
+          logger.info("Agent response received", {
+            content: chunk.agent.messages[0].content,
+          });
         } else if ("tools" in chunk) {
           console.log(chunk.tools.messages[0].content);
+          logger.info("Tool response received", {
+            content: chunk.tools.messages[0].content,
+          });
         }
         console.log("-------------------");
       }
     }
   } catch (error) {
+    logger.error("Error in chat mode", { error });
     if (error instanceof Error) {
       console.error("Error:", error.message);
     }
@@ -331,6 +355,7 @@ async function runChatMode(agent: any, config: any) {
 }
 
 async function chooseMode(): Promise<"chat" | "auto"> {
+  logger.info("Prompting user to choose mode...");
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -345,18 +370,22 @@ async function chooseMode(): Promise<"chat" | "auto"> {
       .toLowerCase()
       .trim();
     if (choice === "1" || choice === "chat") {
+      logger.info("User selected chat mode");
       rl.close();
       return "chat";
     } else if (choice === "2" || choice === "auto") {
+      logger.info("User selected autonomous mode");
       rl.close();
       return "auto";
     }
+    logger.warn("Invalid mode choice", { choice });
     console.log("Invalid choice. Please try again.");
   }
 }
 
 async function main() {
   try {
+    logger.info("Starting main application...");
     const { agent, config } = await initializeAgent();
     const mode = await chooseMode();
     if (mode === "chat") {
@@ -365,6 +394,7 @@ async function main() {
       await runAutonomousMode(agent, config);
     }
   } catch (error) {
+    logger.error("Fatal error in main", { error });
     if (error instanceof Error) {
       console.error("Error:", error.message);
     }
@@ -372,23 +402,19 @@ async function main() {
   }
 }
 
-/*
-  MODE 環境変数で動作モードを切り替えます:
-    - MODE=server なら API サーバーモード（Swagger UI 経由で /chat エンドポイントをテスト可）
-    - MODE=cli    なら CLI モードで対話
-  MODE が設定されていない場合はデフォルトで CLI モードになります。
-*/
 if (require.main === module) {
   const modeEnv = process.env.MODE?.toLowerCase();
   if (modeEnv === "server") {
-    console.log("Starting Agent API server...");
+    logger.info("Starting in server mode...");
     startAgentServer().catch((error) => {
+      logger.error("Failed to start agent server", { error });
       console.error("Failed to start agent server:", error);
       process.exit(1);
     });
   } else {
-    console.log("Starting Agent in CLI mode...");
+    logger.info("Starting in CLI mode...");
     main().catch((error) => {
+      logger.error("Fatal error in application", { error });
       console.error("Fatal error:", error);
       process.exit(1);
     });
