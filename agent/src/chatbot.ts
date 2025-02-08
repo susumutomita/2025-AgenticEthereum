@@ -14,12 +14,59 @@ import { MemorySaver } from "@langchain/langgraph";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
-import { ChatGroq } from "@langchain/groq"; // 仮の例。実際のパッケージ名はプロジェクトに合わせてください。
+import { ChatGroq } from "@langchain/groq"; // 仮の例。プロジェクトに合わせて調整してください。
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
 
 dotenv.config();
+
+import express, { Request, Response, NextFunction } from "express";
+import bodyParser from "body-parser";
+
+async function startAgentServer() {
+  const app = express();
+  const port = process.env.PORT || 3000;
+
+  // JSON ボディをパースするミドルウェア
+  app.use(bodyParser.json());
+
+  // /chat エンドポイントの実装
+  app.post("/chat", (req: Request, res: Response, next: NextFunction) => {
+    (async () => {
+      const { text } = req.body;
+      if (!text || typeof text !== "string") {
+        return res
+          .status(400)
+          .json({ error: "Invalid request: 'text' field is required." });
+      }
+
+      // エージェントを初期化（実運用時はキャッシュするなど工夫してください）
+      const { agent, config } = await initializeAgent();
+
+      // ユーザーのメッセージをエージェントへ渡し、ストリーミング応答を取得
+      const stream = await agent.stream(
+        { messages: [new HumanMessage(text)] },
+        config
+      );
+      let fullResponse = "";
+      for await (const chunk of stream) {
+        if (
+          "agent" in chunk &&
+          chunk.agent.messages &&
+          chunk.agent.messages[0]
+        ) {
+          fullResponse += chunk.agent.messages[0].content;
+        }
+      }
+      res.json({ text: fullResponse });
+    })().catch(next);
+  });
+
+  app.listen(port, () => {
+    console.log(`Agent API server is listening on port ${port}`);
+  });
+}
 
 function validateEnvironment(): void {
   const missingVars: string[] = [];
@@ -39,15 +86,13 @@ function validateEnvironment(): void {
   if (missingVars.length > 0) {
     console.error("Error: Required environment variables are not set");
     missingVars.forEach((varName) => {
-      console.error(
-        `${varName}=your_${varName.toLowerCase().replace(/ or /g, "_or_")}_here`,
-      );
+      console.error(`${varName}=your_${varName.toLowerCase()}_here`);
     });
     process.exit(1);
   }
   if (!process.env.NETWORK_ID) {
     console.warn(
-      "Warning: NETWORK_ID not set, defaulting to base-sepolia testnet",
+      "Warning: NETWORK_ID not set, defaulting to base-sepolia testnet"
     );
   }
 }
@@ -58,7 +103,7 @@ const WALLET_DATA_FILE = "wallet_data.txt";
 
 async function initializeAgent() {
   try {
-    // LLM の初期化: API_TARGET でどのプロバイダーを使うか切り替える
+    // LLM の初期化：環境変数 API_TARGET によって使用するプロバイダーを切り替え
     let llm;
     const target = process.env.API_TARGET || "openai";
     if (target === "groq") {
@@ -91,10 +136,7 @@ async function initializeAgent() {
 
     const config = {
       apiKeyName: process.env.CDP_API_KEY_NAME,
-      apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
-        /\\n/g,
-        "\n",
-      ),
+      apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
       cdpWalletData: walletDataStr || undefined,
       networkId: process.env.NETWORK_ID || "base-sepolia",
     };
@@ -109,17 +151,11 @@ async function initializeAgent() {
         erc20ActionProvider(),
         cdpApiActionProvider({
           apiKeyName: process.env.CDP_API_KEY_NAME,
-          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
-            /\\n/g,
-            "\n",
-          ),
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
         }),
         cdpWalletActionProvider({
           apiKeyName: process.env.CDP_API_KEY_NAME,
-          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
-            /\\n/g,
-            "\n",
-          ),
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
         }),
       ],
     });
@@ -144,9 +180,10 @@ async function initializeAgent() {
         encourage them to implement it themselves using the CDP SDK + Agentkit, recommend they go to
         docs.cdp.coinbase.com for more information. Be concise and helpful with your responses. Refrain from
         restating your tools' descriptions unless it is explicitly requested.
-        `,
+      `,
     });
 
+    // エージェントのウォレットデータをエクスポートし、ファイルに保存
     const exportedWallet = await walletProvider.exportWallet();
     fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
 
@@ -166,7 +203,7 @@ async function runAutonomousMode(agent: any, config: any, interval = 10) {
         "Choose an action or set of actions and execute it that highlights your abilities.";
       const stream = await agent.stream(
         { messages: [new HumanMessage(thought)] },
-        config,
+        config
       );
       for await (const chunk of stream) {
         if ("agent" in chunk) {
@@ -202,7 +239,7 @@ async function runChatMode(agent: any, config: any) {
       }
       const stream = await agent.stream(
         { messages: [new HumanMessage(userInput)] },
-        config,
+        config
       );
       for await (const chunk of stream) {
         if ("agent" in chunk) {
@@ -265,10 +302,25 @@ async function main() {
   }
 }
 
+/*
+  MODE 環境変数で動作モードを切り替えます:
+    - MODE=server なら API サーバーモード（/chat エンドポイント経由）
+    - MODE=cli    なら CLI モードで対話
+  MODE が設定されていない場合はデフォルトで CLI モードになります。
+*/
 if (require.main === module) {
-  console.log("Starting Agent...");
-  main().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
+  const modeEnv = process.env.MODE?.toLowerCase();
+  if (modeEnv === "server") {
+    console.log("Starting Agent API server...");
+    startAgentServer().catch((error) => {
+      console.error("Failed to start agent server:", error);
+      process.exit(1);
+    });
+  } else {
+    console.log("Starting Agent in CLI mode...");
+    main().catch((error) => {
+      console.error("Fatal error:", error);
+      process.exit(1);
+    });
+  }
 }
