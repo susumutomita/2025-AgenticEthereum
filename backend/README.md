@@ -1,10 +1,10 @@
-# Backend Service
+# Backend Service for CryptoDailyBrief
 
-This repository contains a simple Express-based backend that communicates with the [Autonome API](https://autonome.alt.technology) using Basic Authentication. It also provides a Swagger UI for convenient API documentation and testing.
+This TypeScript-based Express backend service manages communication with the Autonome API for AI-driven crypto insights, handles wallet data aggregation, and provides RESTful APIs for the frontend. The service includes comprehensive test coverage with Jest and Swagger documentation.
 
 ## Table of Contents
 
-- [Backend Service](#backend-service)
+- [Backend Service for CryptoDailyBrief](#backend-service-for-cryptodailybrief)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Prerequisites](#prerequisites)
@@ -17,6 +17,7 @@ This repository contains a simple Express-based backend that communicates with t
       - [Successful Response](#successful-response)
       - [Error Response](#error-response)
   - [API Documentation](#api-documentation)
+  - [Testing](#testing)
   - [Logging](#logging)
   - [Contributing](#contributing)
   - [License](#license)
@@ -25,63 +26,72 @@ This repository contains a simple Express-based backend that communicates with t
 
 ## Features
 
-- **Express.js** server for handling incoming JSON requests.
-- **Basic Auth integration** with the Autonome API, using `axios`.
-- **Swagger UI** for interactive API documentation at `/api-docs`.
-- **Configurable** via `.env` file (or environment variables).
-- **Logger** that outputs essential request/response information.
+- **TypeScript & Express.js**: Fully typed REST API server with Express.
+- **Autonome Integration**: Secure communication with Autonome API for AI analysis.
+- **Jest Testing**: Comprehensive test coverage for all services.
+- **Swagger UI**: Interactive API documentation at `/api-docs`.
+- **Environment Configuration**: Flexible configuration via `.env` file.
+- **Structured Logging**: Detailed request/response logging with Winston.
 
 ---
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (v14 or higher recommended)
+- [Node.js](https://nodejs.org/) (v18 or higher)
 - [npm](https://www.npmjs.com/) (comes with Node.js)
 
 ---
 
 ## Installation
 
-1. **Clone** this repository:
-   ```bash
-   git clone <REPO_URL>
-   cd <REPO_DIRECTORY>
-   ```
-
-2. **Install dependencies**:
+1. **Install dependencies**:
    ```bash
    npm install
+   ```
+
+2. **Build the TypeScript code**:
+   ```bash
+   npm run build
    ```
 
 ---
 
 ## Configuration
 
-Create a `.env` file in the root directory to manage environment variables. An example `.env` might look like:
+Create a `.env` file in the root directory using `.env.example` as a template:
 
-```
+```env
 PORT=3001
 NODE_ENV=development
+AUTONOME_BASE_URL=https://autonome.alt.technology
+AUTONOME_INSTANCE_ID=your-instance-id
+AUTONOME_USERNAME=your-username
+AUTONOME_PASSWORD=your-password
 ```
 
-| Variable         | Description                                              | Default  |
-|------------------|----------------------------------------------------------|----------|
-| `PORT`           | Port on which the server will listen                     | `3001`   |
-| `NODE_ENV`       | Sets Node environment mode (e.g. `development`, `production`) | `development` |
-
-> **Note**: For Autonome credentials, see `backend/src/services/autonomeService.ts` (the `defaultConfig` object). You can override these via the `autonome` payload in API calls if needed.
+| Variable | Description | Default |
+|----------|------------|----------|
+| `PORT` | Server port | `3001` |
+| `NODE_ENV` | Environment mode | `development` |
+| `AUTONOME_BASE_URL` | Autonome API endpoint | `https://autonome.alt.technology` |
+| `AUTONOME_INSTANCE_ID` | Your Autonome instance ID | Required |
+| `AUTONOME_USERNAME` | Autonome API username | Required |
+| `AUTONOME_PASSWORD` | Autonome API password | Required |
 
 ---
 
 ## Running the Server
 
-After installing dependencies and setting up your `.env`:
-
+For development with hot-reload:
 ```bash
-npm start
+npm run dev
 ```
 
-By default, the server will start on port `3001`. You can override this using the `PORT` environment variable.
+For production:
+```bash
+npm run build
+npm start
+```
 
 ---
 
@@ -95,17 +105,16 @@ By default, the server will start on port `3001`. You can override this using th
 
 ```json
 {
-  "text": "Hello, Agent!"
+  "message": "Analyze my portfolio and suggest rebalancing options",
+  "walletAddress": "0x..."
 }
 ```
 
-- **`text`** (string): The message text to send. **Required**.
-
-Optional overrides can be provided to specify custom Autonome credentials, for example:
-
+Optional parameters:
 ```json
 {
-  "text": "Hello, Agent!",
+  "message": "Analyze my portfolio",
+  "walletAddress": "0x...",
   "autonome": {
     "baseUrl": "https://autonome.alt.technology",
     "instanceId": "your-instance-id",
@@ -119,10 +128,16 @@ Optional overrides can be provided to specify custom Autonome credentials, for e
 
 ```json
 {
-  "success": true,
-  "agentId": "b27054cb-8c55-0ec4-ad2f-005965bd4a7c",
-  "messageResult": {
-    // ... response data from Autonome
+  "analysis": {
+    "portfolio": {
+      "totalValue": "10000 USD",
+      "recommendations": [
+        {
+          "action": "REBALANCE",
+          "details": "Consider reducing ETH exposure by 5%"
+        }
+      ]
+    }
   }
 }
 ```
@@ -131,7 +146,9 @@ Optional overrides can be provided to specify custom Autonome credentials, for e
 
 ```json
 {
-  "error": "fail to send autonomy"
+  "error": "Failed to analyze portfolio",
+  "code": "ANALYSIS_ERROR",
+  "details": "..."
 }
 ```
 
@@ -139,34 +156,56 @@ Optional overrides can be provided to specify custom Autonome credentials, for e
 
 ## API Documentation
 
-Once the server is running, navigate to:
-
+Access the Swagger UI documentation at:
 ```
 http://localhost:3001/api-docs
 ```
 
-This opens the **Swagger UI**. You can try out the `POST /api/v1/message` endpoint directly through the web interface.
+---
+
+## Testing
+
+Run the test suite:
+```bash
+npm test
+```
+
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
 
 ---
 
 ## Logging
 
-All logs are sent through the custom `logger` (`backend/src/logger.ts`). Logs include:
+The service uses Winston for structured logging with the following features:
 
-- **Request details** (URL, headers, payload when sending to Autonome)
-- **Response data** from Autonome
-- **Errors** (HTTP status, response body, or setup issues)
+- **Request Context**: Each request gets a unique ID for tracing
+- **Performance Metrics**: Response times and API latencies
+- **Error Details**: Stack traces and error contexts
+- **Security Events**: Authentication and authorization logs
 
-You can adjust log levels by editing the logger configuration if needed.
+Logs are output to both console and files:
+```
+logs/
+  ├── error.log
+  ├── combined.log
+  └── requests.log
+```
 
 ---
 
 ## Contributing
 
-Feel free to open issues or pull requests if you have improvements or find any bugs. When submitting a PR, please include a clear description of changes.
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/my-new-feature`
+5. Submit a pull request
 
 ---
 
 ## License
 
-This project is released under the [MIT License](LICENSE). Feel free to use it as you wish.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
