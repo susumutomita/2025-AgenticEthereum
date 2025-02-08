@@ -29,18 +29,21 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm install && \
-  # Remove npm cache to reduce image size
+RUN npm install --production && \
   npm cache clean --force
 
 # Copy only the built artifacts from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Set production environment
+# Copy entrypoint script and set execution permissions
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Set production environment variables
 ENV NODE_ENV=production
+ENV DAEMON_PROCESS=true
+ENV SERVER_PORT=3000
 
-# Optionally, use the --squash flag during build to flatten layers (requires Docker BuildKit enabled)
-# e.g., DOCKER_BUILDKIT=1 docker build --squash -t <image> .
-
-# Run the chatbot application
+# Set entrypoint and command:
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "dist/chatbot.js"]
