@@ -89,6 +89,11 @@ async function startAgentServer() {
   app.use(bodyParser.json());
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    logger.info(`Incoming request: ${req.method} ${req.url}`, { body: req.body });
+    next();
+  });
+
   app.post("/message", (req: Request, res: Response, next: NextFunction) => {
     (async () => {
       const { text } = req.body;
@@ -121,6 +126,29 @@ async function startAgentServer() {
       } catch (error) {
         logger.error("Error processing chat request", { error });
         next(error);
+      }
+    })().catch(next);
+  });
+
+  app.get("/healthz", (req: Request, res: Response, next: NextFunction) => {
+    (async () => {
+      logger.info(`Received POST request on /healthz`, { body: req.body });
+
+      if (req.body && req.body.message === "healthz") {
+        logger.info("Health check passed.");
+        return res.status(200).json({ status: "ok" });
+      }
+    })().catch(next);
+  });
+
+
+  app.post("/healthz", (req: Request, res: Response, next: NextFunction) => {
+    (async () => {
+      logger.info(`Received POST request on /healthz`, { body: req.body });
+
+      if (req.body && req.body.message === "healthz") {
+        logger.info("Health check passed.");
+        return res.status(200).json({ status: "ok" });
       }
     })().catch(next);
   });
