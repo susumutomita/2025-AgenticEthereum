@@ -1,132 +1,148 @@
 import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
-import cron from "node-cron";
+import { autonomeService } from "./services/autonomeService";
+import logger from "./logger";
+import swaggerUi from "swagger-ui-express";
+import swaggerJSDoc from "swagger-jsdoc";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
 
-// 各種サービスのインポート
-import { walletHandler } from "./walletHandler.js";
-import { createTelegramBot } from "./services/telegramService.js";
-import { aiService } from "./services/aiService.js";
-import { autonomeService } from "./services/autonomeService.js";
-
-// 新たに追加するルート
-import restakeRoutes from "./routes/restake.js";
-import aiBriefingRoutes from "./routes/aiBriefing.js";
-
-// 環境変数を読み込む
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
-// ミドルウェア
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Telegram Bot の初期化
-if (!process.env.TELEGRAM_BOT_TOKEN) {
-  throw new Error("TELEGRAM_BOT_TOKEN environment variable is required");
-}
-const telegramBot = createTelegramBot(process.env.TELEGRAM_BOT_TOKEN);
-
-// 毎朝8時にユーザーにブリーフィングを送信する定期実行タスク
-cron.schedule("0 8 * * *", async () => {
-  try {
-    const users = await telegramBot.getAllConnectedUsers();
-    for (const user of users) {
-      // walletAddress が存在することを保証して、ブリーフィングを取得
-      const briefing = await aiService.getDailyBriefing(
-        user.walletAddress!,
-        user.userContext,
-      );
-      await telegramBot.sendBriefing(user.chatId, briefing);
-      console.log(`Successfully sent briefing to user ${user.chatId}`);
-    }
-    console.log(
-      `Daily briefing task completed. Sent briefings to ${users.length} users`,
-    );
-  } catch (error) {
-    console.error("Error generating daily briefings:", error);
-  }
-});
-
-// ----------------------
-// API Endpoints
-// ----------------------
-
-// 1. Wallet Data取得エンドポイント
-app.get("/api/wallet/:address", (req, res) => {
-  const { address } = req.params;
-  try {
-    const walletData = walletHandler.getWalletData(address);
-    res.json(walletData);
-  } catch (error) {
-    console.error("Error fetching wallet data:", error);
-    res.status(500).json({ error: "Failed to fetch wallet data" });
-  }
-});
-
-// 2. 通知設定エンドポイント（将来的な実装用）
-app.post("/api/notification/settings", (req, res) => {
-  // TODO: Implement notification settings
-  res.json({ success: true });
-});
-
-// 3. Autonomeへメッセージ送信エンドポイント
-/**
- * リクエストボディ例:
- * {
- *   "text": "hi",
- *   "agentId": "（任意、指定しない場合は最初のagentを使用）"
- * }
- */
-app.post("/api/autonome/message", async (req, res) => {
-  const { text, agentId } = req.body;
-  if (!text) {
-    return res.status(400).json({ error: "textフィールドは必須です" });
-  }
-  try {
-    // agentIdが指定されていなければ、最初のagentのIDを取得
-    const finalAgentId = agentId || (await autonomeService.getAgentId());
-    const messageResult = await autonomeService.sendMessage(finalAgentId, text);
-    res
-      .status(200)
-      .json({ success: true, agentId: finalAgentId, messageResult });
-  } catch (error) {
-    console.error("Error in /api/autonome/message:", error);
-    res.status(500).json({ error: "Autonomeへのメッセージ送信に失敗しました" });
-  }
-});
-
-// 4. Health Checkエンドポイント
-app.get("/health", (req, res) => {
-  res.json({
-    status: "healthy",
+// --- Swagger Setup ---
+const swaggerDefinition = {
+  openapi: "3.0.0",
+  info: {
+    title: "Agent API",
     version: "1.0.0",
-    services: {
-      telegram: Boolean(telegramBot),
-      api: true,
+    description: "API documentation for the Coinbase AgentKit based service",
+  },
+  servers: [
+    {
+      url: `http://localhost:${port}`,
     },
-  });
+  ],
+};
+const swaggerOptions = {
+  swaggerDefinition,
+  apis: [__filename],
+};
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+/**
+ * @swagger
+ * /api/v1/message:
+ *   post:
+ *     summary: Send a message to the Autonome agent via a flexible payload.
+ *     description: |
+ *       Sends a message to Autonome. The request payload can include:
+ *         - text: the message to send (required)
+ *         - autonome: (optional) an object containing:
+ *             - baseUrl: Autonome base URL
+ *             - instanceId: Autonome instance ID
+ *             - username: Autonome username
+ *             - password: Autonome password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 example: "Hello, Agent!"
+ *               autonome:
+ *                 type: object
+ *                 properties:
+ *                   baseUrl:
+ *                     type: string
+ *                     example: "https://autonome.alt.technology"
+ *                   instanceId:
+ *                     type: string
+ *                     example: "your-instance-id"
+ *                   username:
+ *                     type: string
+ *                     example: "your-username"
+ *                   password:
+ *                     type: string
+ *                     example: "your-password"
+ *     responses:
+ *       200:
+ *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 agentId:
+ *                   type: string
+ *                 messageResult:
+ *                   type: object
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Message sending failed
+ */
+app.post("/api/v1/message", async (req, res) => {
+  const { text, agentId, autonome } = req.body;
+
+  // Log the incoming request body
+  logger.info("[POST /api/v1/message] Incoming request body:", req.body);
+
+  if (!text) {
+    return res.status(400).json({ error: "text field is required" });
+  }
+
+  try {
+    // If agentId is not provided, fetch it from Autonome
+    const finalAgentId =
+      agentId || (await autonomeService.getAgentId({ autonome }));
+
+    // Send the message
+    const messageResult = await autonomeService.sendMessage({
+      text,
+      agentId: finalAgentId,
+      autonome,
+    });
+
+    return res.status(200).json({
+      success: true,
+      agentId: finalAgentId,
+      messageResult,
+    });
+  } catch (error: any) {
+    logger.error("Error in /api/v1/message:", error);
+    return res.status(500).json({ error: "fail to send autonomy" });
+  }
 });
 
-// 追加するリステーキング残高取得のルート
-app.use("/api", restakeRoutes);
-app.use("/api", aiBriefingRoutes);
-// ----------------------
-// エラーハンドリングミドルウェア
-// ----------------------
+// Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response) => {
-  console.error("Unhandled error:", err);
+  logger.error("Unhandled error:", err);
   res.status(500).json({
     error: "Internal server error",
     message: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
 });
 
-// サーバーの起動
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  logger.info(`Agent API server is listening on port ${port}`);
+  logger.info(`Swagger UI available at http://localhost:${port}/api-docs`);
 });
 
 export default app;

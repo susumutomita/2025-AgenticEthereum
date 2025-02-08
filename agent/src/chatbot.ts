@@ -49,7 +49,7 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 /**
  * @swagger
- * /chat:
+ * /message:
  *   post:
  *     summary: Chat with the agent
  *     description: Sends a text message to the agent and returns its response.
@@ -89,7 +89,7 @@ async function startAgentServer() {
   app.use(bodyParser.json());
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  app.post("/chat", (req: Request, res: Response, next: NextFunction) => {
+  app.post("/message", (req: Request, res: Response, next: NextFunction) => {
     (async () => {
       const { text } = req.body;
       if (!text || typeof text !== "string") {

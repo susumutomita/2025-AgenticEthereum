@@ -14,4 +14,5 @@ export default {
       },
     ],
   },
+  setupFilesAfterEnv: ["<rootDir>/test/jest.setup.ts"],
 };
