@@ -90,12 +90,19 @@ async function startAgentServer() {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   app.use((req: Request, res: Response, next: NextFunction) => {
-    logger.info(`Incoming request: ${req.method} ${req.url}`, { body: req.body });
+    logger.info(`Incoming request: ${req.method} ${req.url}`, {
+      body: req.body,
+    });
     next();
   });
 
   app.post("/message", (req: Request, res: Response, next: NextFunction) => {
     (async () => {
+      if (req.body && req.body.message === "healthz") {
+        logger.info("Health check received on /message, returning OK.");
+        return res.status(200).json({ status: "ok" });
+      }
+
       const { text } = req.body;
       if (!text || typeof text !== "string") {
         logger.warn("Invalid request received", { body: req.body });
@@ -133,23 +140,14 @@ async function startAgentServer() {
   app.get("/healthz", (req: Request, res: Response, next: NextFunction) => {
     (async () => {
       logger.info(`Received POST request on /healthz`, { body: req.body });
-
-      if (req.body && req.body.message === "healthz") {
-        logger.info("Health check passed.");
-        return res.status(200).json({ status: "ok" });
-      }
+      return res.status(200).json({ status: "ok" });
     })().catch(next);
   });
-
 
   app.post("/healthz", (req: Request, res: Response, next: NextFunction) => {
     (async () => {
       logger.info(`Received POST request on /healthz`, { body: req.body });
-
-      if (req.body && req.body.message === "healthz") {
-        logger.info("Health check passed.");
-        return res.status(200).json({ status: "ok" });
-      }
+      return res.status(200).json({ status: "ok" });
     })().catch(next);
   });
 
