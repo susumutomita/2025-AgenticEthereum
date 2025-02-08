@@ -45,19 +45,10 @@ contract CryptoDailyBriefTest is Test {
         // NFT がバーンされ、balance が 0 になるはず
         assertEq(nft.balanceOf(user, tokenId), 0, "NFT should be burned");
         // stakeAmounts が 0 にリセットされているかチェック
-        assertEq(
-            nft.stakeAmounts(tokenId),
-            0,
-            "Stake amount should be zero after unstake"
-        );
+        assertEq(nft.stakeAmounts(tokenId), 0, "Stake amount should be zero after unstake");
 
         // ユーザーに返金されているか確認（ガスコストはあるため、許容誤差を設定）
         uint256 userBalanceAfter = user.balance;
-        assertApproxEqAbs(
-            userBalanceAfter,
-            userBalanceBefore + stakeAmount,
-            1e15,
-            "Unstaked amount mismatch"
-        );
+        assertApproxEqAbs(userBalanceAfter, userBalanceBefore + stakeAmount, 1e15, "Unstaked amount mismatch");
     }
 }
