@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../src/CryptoDailyBrief.sol"; // コントラクトのパスを確認してください
 
-contract CryptoDailyBriefNFT is Script {
+contract CryptoDailyBriefScript is Script {
     function run() external {
         // スクリプト実行時に使用するプライベートキーでブロードキャスト開始
         vm.startBroadcast();

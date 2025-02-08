@@ -57,13 +57,10 @@ contract CryptoDailyBrief is ERC1155, Ownable {
     receive() external payable {}
 
     function uri(uint256 tokenId) public view override returns (string memory) {
-        return
-            string(
-                abi.encodePacked(
-                    "https://susumutomita.github.io/2025-AgenticEthereum/metadata/",
-                    tokenId.toString(),
-                    ".json"
-                )
-            );
+        return string(
+            abi.encodePacked(
+                "https://susumutomita.github.io/2025-AgenticEthereum/metadata/", tokenId.toString(), ".json"
+            )
+        );
     }
 }
