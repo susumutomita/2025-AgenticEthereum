@@ -15,6 +15,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
 import { ChatGroq } from "@langchain/groq";
+import { theGraphActionProvider } from "./tools/thegraph/TheGraphActionProvider";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
@@ -137,20 +138,6 @@ async function startAgentServer() {
     })().catch(next);
   });
 
-  app.get("/healthz", (req: Request, res: Response, next: NextFunction) => {
-    (async () => {
-      logger.info(`Received POST request on /healthz`, { body: req.body });
-      return res.status(200).json({ status: "ok" });
-    })().catch(next);
-  });
-
-  app.post("/healthz", (req: Request, res: Response, next: NextFunction) => {
-    (async () => {
-      logger.info(`Received POST request on /healthz`, { body: req.body });
-      return res.status(200).json({ status: "ok" });
-    })().catch(next);
-  });
-
   app.listen(port, () => {
     logger.info(`Agent API server is listening on port ${port}`);
     logger.info(`Swagger UI available at http://localhost:${port}/api-docs`);
@@ -244,6 +231,7 @@ async function initializeAgent() {
         pythActionProvider(),
         walletActionProvider(),
         erc20ActionProvider(),
+        theGraphActionProvider(),
         cdpApiActionProvider({
           apiKeyName: process.env.CDP_API_KEY_NAME,
           apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
