@@ -53,6 +53,7 @@ The system aggregates on-chain wallet data (via The Graph) and off-chain market 
 ### Screenshots
 
 <img src="./images/dashboard.png" alt="CryptoDailyBrief dashboard">
+<img src="./images/chat.png" alt="CryptoDailyBrief Dashboard">
 <img src="./images/autonome.png" alt="CryptoDailyBrief Dashboard">
 
 ---
