@@ -1,6 +1,6 @@
 # Backend Service for CryptoDailyBrief
 
-This TypeScript-based Express backend service manages communication with the Autonome API for AI-driven crypto insights, handles wallet data aggregation, and provides RESTful APIs for the frontend. The service includes comprehensive test coverage with Jest and Swagger documentation.
+This TypeScript-based Express backend service manages communication with multiple external APIs including Autonome, The Graph, Twitter, and YouTube. It provides RESTful and GraphQL endpoints for the frontend, handles wallet data aggregation, and includes comprehensive test coverage with Jest.
 
 ## Table of Contents
 
@@ -11,12 +11,12 @@ This TypeScript-based Express backend service manages communication with the Aut
   - [Installation](#installation)
   - [Configuration](#configuration)
   - [Running the Server](#running-the-server)
-  - [Usage](#usage)
-    - [1. Sending a Message to Autonome](#1-sending-a-message-to-autonome)
-      - [Request Body](#request-body)
-      - [Successful Response](#successful-response)
-      - [Error Response](#error-response)
   - [API Documentation](#api-documentation)
+    - [REST Endpoints](#rest-endpoints)
+      - [1. Portfolio Analysis](#1-portfolio-analysis)
+      - [2. Social Media Feeds](#2-social-media-feeds)
+      - [3. NFT Operations](#3-nft-operations)
+    - [GraphQL Schema](#graphql-schema)
   - [Testing](#testing)
   - [Logging](#logging)
   - [Contributing](#contributing)
@@ -26,12 +26,14 @@ This TypeScript-based Express backend service manages communication with the Aut
 
 ## Features
 
-- **TypeScript & Express.js**: Fully typed REST API server with Express.
-- **Autonome Integration**: Secure communication with Autonome API for AI analysis.
-- **Jest Testing**: Comprehensive test coverage for all services.
-- **Swagger UI**: Interactive API documentation at `/api-docs`.
-- **Environment Configuration**: Flexible configuration via `.env` file.
-- **Structured Logging**: Detailed request/response logging with Winston.
+- **TypeScript & Express.js**: Fully typed REST API and GraphQL server
+- **The Graph Integration**: Efficient blockchain data querying
+- **Social Media APIs**: Twitter and YouTube feed integration
+- **Autonome Integration**: AI-powered analysis and recommendations
+- **ERC1155 Support**: NFT tracking and management
+- **Jest Testing**: Comprehensive test coverage
+- **Swagger UI**: Interactive REST API documentation
+- **GraphQL Playground**: Interactive GraphQL documentation
 
 ---
 
@@ -39,6 +41,7 @@ This TypeScript-based Express backend service manages communication with the Aut
 
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [npm](https://www.npmjs.com/) (comes with Node.js)
+- API keys for various services (see Configuration)
 
 ---
 
@@ -58,36 +61,54 @@ This TypeScript-based Express backend service manages communication with the Aut
 
 ## Configuration
 
-Create a `.env` file in the root directory using `.env.example` as a template:
+Create a `.env` file using `.env.example` as a template:
 
 ```env
+# Server Configuration
 PORT=3001
 NODE_ENV=development
+
+# Autonome Configuration
 AUTONOME_BASE_URL=https://autonome.alt.technology
 AUTONOME_INSTANCE_ID=your-instance-id
 AUTONOME_USERNAME=your-username
 AUTONOME_PASSWORD=your-password
+
+# The Graph Configuration
+GRAPH_API_KEY=your-graph-api-key
+GRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/your-subgraph
+
+# Social Media APIs
+TWITTER_API_KEY=your-twitter-api-key
+TWITTER_API_SECRET=your-twitter-api-secret
+YOUTUBE_API_KEY=your-youtube-api-key
+
+# Web3 Configuration
+RPC_URL=your-rpc-url
+CHAIN_ID=8453  # Base Network
 ```
 
 | Variable | Description | Default |
 |----------|------------|----------|
 | `PORT` | Server port | `3001` |
 | `NODE_ENV` | Environment mode | `development` |
-| `AUTONOME_BASE_URL` | Autonome API endpoint | `https://autonome.alt.technology` |
-| `AUTONOME_INSTANCE_ID` | Your Autonome instance ID | Required |
-| `AUTONOME_USERNAME` | Autonome API username | Required |
-| `AUTONOME_PASSWORD` | Autonome API password | Required |
+| `AUTONOME_*` | Autonome API credentials | Required |
+| `GRAPH_*` | The Graph API settings | Required |
+| `TWITTER_*` | Twitter API credentials | Required |
+| `YOUTUBE_*` | YouTube API key | Required |
+| `RPC_URL` | Base Network RPC URL | Required |
+| `CHAIN_ID` | Network Chain ID | `8453` |
 
 ---
 
 ## Running the Server
 
-For development with hot-reload:
+Development mode with hot-reload:
 ```bash
 npm run dev
 ```
 
-For production:
+Production mode:
 ```bash
 npm run build
 npm start
@@ -95,103 +116,162 @@ npm start
 
 ---
 
-## Usage
+## API Documentation
 
-### 1. Sending a Message to Autonome
+### REST Endpoints
 
-`POST /api/v1/message`
+#### 1. Portfolio Analysis
+`POST /api/v1/portfolio/analyze`
 
-#### Request Body
+Analyzes a wallet's portfolio using AI and on-chain data.
 
 ```json
+// Request
 {
-  "message": "Analyze my portfolio and suggest rebalancing options",
-  "walletAddress": "0x..."
-}
-```
-
-Optional parameters:
-```json
-{
-  "message": "Analyze my portfolio",
   "walletAddress": "0x...",
-  "autonome": {
-    "baseUrl": "https://autonome.alt.technology",
-    "instanceId": "your-instance-id",
-    "username": "your-username",
-    "password": "your-password"
-  }
+  "timeframe": "1d",
+  "includeNFTs": true
 }
-```
 
-#### Successful Response
-
-```json
+// Response
 {
   "analysis": {
     "portfolio": {
       "totalValue": "10000 USD",
-      "recommendations": [
-        {
-          "action": "REBALANCE",
-          "details": "Consider reducing ETH exposure by 5%"
-        }
-      ]
+      "tokens": [...],
+      "nfts": [...],
+      "recommendations": [...]
     }
   }
 }
 ```
 
-#### Error Response
+#### 2. Social Media Feeds
+`GET /api/v1/feeds/twitter`
+`GET /api/v1/feeds/youtube`
+
+Fetches relevant crypto content from social media.
 
 ```json
+// Response
 {
-  "error": "Failed to analyze portfolio",
-  "code": "ANALYSIS_ERROR",
-  "details": "..."
+  "feeds": [
+    {
+      "id": "1234567890",
+      "content": "...",
+      "author": "...",
+      "timestamp": "2025-02-09T12:00:00Z"
+    }
+  ]
 }
 ```
 
----
+#### 3. NFT Operations
+`POST /api/v1/nft/transfer`
 
-## API Documentation
+Handles ERC1155 token transfers.
 
-Access the Swagger UI documentation at:
+```json
+// Request
+{
+  "tokenId": "1",
+  "from": "0x...",
+  "to": "0x...",
+  "amount": "1"
+}
 ```
-http://localhost:3001/api-docs
+
+### GraphQL Schema
+
+```graphql
+type Query {
+  portfolio(address: String!): Portfolio!
+  transactions(
+    address: String!
+    first: Int = 10
+    skip: Int = 0
+  ): [Transaction!]!
+  nftCollections(owner: String!): [NFTCollection!]!
+}
+
+type Portfolio {
+  totalValueUSD: Float!
+  tokens: [Token!]!
+  nfts: [NFT!]!
+}
+
+type Transaction {
+  id: ID!
+  hash: String!
+  timestamp: Int!
+  value: BigInt!
+  from: String!
+  to: String!
+}
+
+type NFTCollection {
+  id: ID!
+  name: String!
+  tokens: [NFT!]!
+}
+```
+
+Example query:
+```graphql
+query GetPortfolio($address: String!) {
+  portfolio(address: $address) {
+    totalValueUSD
+    tokens {
+      symbol
+      balance
+      valueUSD
+    }
+    nfts {
+      tokenId
+      collection
+      lastTransferPrice
+    }
+  }
+}
 ```
 
 ---
 
 ## Testing
 
-Run the test suite:
+Run all tests:
 ```bash
 npm test
 ```
 
-Run tests with coverage:
+Run with coverage:
 ```bash
 npm run test:coverage
+```
+
+Generate GraphQL types:
+```bash
+npm run codegen
 ```
 
 ---
 
 ## Logging
 
-The service uses Winston for structured logging with the following features:
+Winston-based structured logging:
 
-- **Request Context**: Each request gets a unique ID for tracing
-- **Performance Metrics**: Response times and API latencies
-- **Error Details**: Stack traces and error contexts
-- **Security Events**: Authentication and authorization logs
+- Request/response tracing
+- Performance metrics
+- Error tracking
+- Security events
 
-Logs are output to both console and files:
+Log files:
 ```
 logs/
-  ├── error.log
-  ├── combined.log
-  └── requests.log
+  ├── error.log     # Error-level logs
+  ├── combined.log  # All logs
+  ├── graphql.log   # GraphQL queries
+  └── requests.log  # HTTP requests
 ```
 
 ---
@@ -199,13 +279,13 @@ logs/
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin feature/my-new-feature`
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
 5. Submit a pull request
 
 ---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE)

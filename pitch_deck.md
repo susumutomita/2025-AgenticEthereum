@@ -7,6 +7,7 @@ class:
 ---
 
 # CryptoDaily Brief
+
 Daily Personalized Crypto Insights
 ![bg cover right](./images/logo.png)
 
@@ -14,65 +15,67 @@ Daily Personalized Crypto Insights
 
 ## Problem Statement
 
-- Crypto investors struggle with information overload
-- Difficult to integrate on-chain data with market sentiment
-- Lack of actionable, daily insights for portfolio optimization and tax planning
+- **Too Much Data**: Crypto users get lost in endless information
+- **Hard to Combine**: On-chain data and market news are scattered
+- **Confusing Tools**: Web3 has special wallets & terms that scare newcomers
 
 ---
 
 ## What We Made
 
-- **CryptoDaily Brief**: A daily briefing platform for crypto asset management
-- **Key Features**:
-  - Aggregates wallet data from multiple chains
-  - Combines off-chain market sentiment & economic indicators
-  - AI-generated actionable insights (rebalancing, risk alerts, tax tips)
+**CryptoDailyBrief** is a **chat-based** tool that shows:
+
+- **On-Chain Data**: Wallet balances & transactions
+- **YouTube Trends**: Popular crypto videos
+- **Simple Chat**: Talk to the blockchain in real time
+- **Unified Dashboard**: Everything in one place
 
 ---
 
 ## How It Works
 
-1. **Wallet Data Integration**
-   - Retrieves transactions & balances via The Graph API
-2. **Data Aggregation & Analysis**
-   - Merges on-chain and off-chain data for a comprehensive view
-3. **AI-Powered Recommendations**
-   - Autonome/AgentKit generates personalized advice
-4. **User Interaction**
-   - Daily insights delivered through a dynamic dashboard and chat interface
+1. **Wallet Data**
+   - Balances & transactions (via The Graph)
+
+2. **Unified Dashboard**
+   - On-chain & off-chain info in one view
+
+3. **Chat with an Agent**
+   - Ask about tokens & send transfers through chat
 
 ---
 
 ## Demo
 
-- Live demonstration of the daily briefing generation
-- Real-time portfolio insights and actionable recommendations
+- **Live Chat Demo**
+  Send tokens with simple commands
+- **Real-Time Updates**
+  Watch balances change as you transfer
 
 ---
 
 ## Tech Stacks
 
-- **Backend**: Node.js, Express, Socket.IO
-- **Data Aggregation**: The Graph API
-- **AI Integration**: Autonome/AgentKit
-- **Frontend**: React/Next.js, Chart.js
-- **Smart Contracts & Security**: Solidity, Lit Protocol
-- **Deployment**: Testnets (e.g., Sepolia, Ganache)
+- **Autonome**
+  Deployed AI agent on their platform
+- **AgentKit (Coinbase)**
+  On-chain wallet & actions for our agent
+- **Base**
+  Smart contracts on Base (Sepolia testnet)
+- **The Graph**
+  Fetch chain data
 
 ---
 
-## Future Enhancements
+## Future Works
 
-- **Advanced AI Models** for refined investment and tax strategies
-- **Expanded Data Sources**: More market and behavioral APIs
-- **Mobile App** for on-the-go insights
-- **e-Tax Integration** for automated tax reporting
+- **Auto Trading**
+  Let the agent buy/sell tokens under your rules
+- **More Social Media**
+  Pull data from Twitter, Discord, etc.
+- **Mobile Version**
+  Manage tokens & chat on the go
 
 ---
 
-## Thank You!
-
-- Contact: [yourname@example.com](mailto:yourname@example.com)
-- GitHub: [https://github.com/yourusername/cryptodaily-brief](https://github.com/yourusername/cryptodaily-brief)
-
-Let's transform crypto asset management into a daily, actionable experience!
+## Thank You
