@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     // クエリパラメーターから検索ワードを取得（なければ "web3" をデフォルトに）
-    const query = searchParams.get("query") || "web3";
+    const query = searchParams.get("query") || "ethglobal";
 
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) {

@@ -16,7 +16,7 @@ export function YouTubeFeedCard({ unifiedCardClass }: YouTubeFeedCardProps) {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState<string>("web3"); // 初期は "web3" を設定
+  const [query, setQuery] = useState<string>("ethglobal");
 
   async function fetchVideos(searchTerm: string) {
     setLoading(true);
