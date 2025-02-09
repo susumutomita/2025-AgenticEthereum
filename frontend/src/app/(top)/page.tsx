@@ -6,7 +6,7 @@ import { Card } from "../components/ui/card";
 import { ChatInterface } from "../components/ChatInterface";
 import { WalletBalanceCard } from "../components/WalletBalanceCard";
 import { TransactionHistoryCard } from "../components/TransactionHistoryCard";
-import { TwitterFeedCard } from "../components/TwitterFeedCard";
+import { YouTubeFeedCard } from "../components/YouTubeFeedCard";
 
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -19,10 +19,10 @@ const unifiedCardClass =
 
 const layouts = {
   lg: [
-    { i: "chat", x: 0, y: 0, w: 6, h: 9, minH: 4 }, // チャット 左
-    { i: "wallet", x: 0, y: 0, w: 6, h: 6, minH: 3 }, // ウォレット 右上
-    { i: "history", x: 6, y: 0, w: 6, h: 3, minH: 3 }, // 履歴 右中央
-    { i: "twitter", x: 6, y: 3, w: 6, h: 3, minH: 3 }, // Twitter 右下
+    { i: "chat", x: 0, y: 0, w: 6, h: 9, minH: 4 },
+    { i: "wallet", x: 0, y: 0, w: 6, h: 3, minH: 3 },
+    { i: "history", x: 6, y: 0, w: 6, h: 5, minH: 3 },
+    { i: "youtube", x: 6, y: 3, w: 6, h: 8, minH: 9 },
   ],
 };
 
@@ -100,9 +100,9 @@ export default function DashboardPage() {
               <TransactionHistoryCard unifiedCardClass={unifiedCardClass} />
             </div>
 
-            {/* 4) Twitter */}
-            <div key="twitter" className="h-full no-drag">
-              <TwitterFeedCard unifiedCardClass={unifiedCardClass} />
+            {/* 4) YouTube */}
+            <div key="youtube" className="h-full no-drag">
+              <YouTubeFeedCard unifiedCardClass={unifiedCardClass} />
             </div>
           </ResponsiveGridLayout>
         </div>
