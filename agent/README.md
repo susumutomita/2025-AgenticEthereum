@@ -1,15 +1,31 @@
 # CryptoDailyBrief AI Agent
 
-This directory contains the AI agent implementation for CryptoDailyBrief, powered by Autonome. The agent analyzes crypto portfolios, market trends, and provides personalized insights and recommendations through natural language interaction.
+This directory contains the AI agent implementation for CryptoDailyBrief, powered by Autonome. The agent analyzes crypto portfolios, market trends, and provides personalized insights through natural language interaction, with support for ERC1155 tokens and The Graph protocol integration.
 
 ## Features
 
-- **Portfolio Analysis**: Analyzes wallet contents and transaction history
-- **Market Insights**: Tracks market trends and sentiment
-- **Tax Planning**: Provides tax optimization suggestions
-- **Risk Management**: Monitors portfolio risk levels and suggests adjustments
-- **Multi-LLM Support**: Compatible with OpenAI, GROQ, and Ollama
-- **Docker Deployment**: Containerized for easy deployment and scaling
+- **Portfolio Analysis**:
+  - Wallet content and transaction history analysis
+  - ERC1155 token tracking and management
+  - Multi-chain support via custom wallet providers
+
+- **Market Intelligence**:
+  - Real-time market trend analysis
+  - Social sentiment aggregation
+  - Price movement predictions
+  - Volume and liquidity monitoring
+
+- **The Graph Integration**:
+  - Custom subgraph queries
+  - Real-time blockchain data indexing
+  - Historical transaction analysis
+  - Token transfer tracking
+
+- **AI Capabilities**:
+  - Multi-LLM support (OpenAI, GROQ, Ollama)
+  - Natural language portfolio insights
+  - Automated trading suggestions
+  - Risk assessment and management
 
 ## Prerequisites
 
@@ -25,11 +41,14 @@ Required environment variables:
 
 #### Core Settings
 ```env
-# Operation Mode (required)
+# Operation Mode
 MODE=server  # or 'cli' for command line interface
-
-# Port Configuration (optional)
 PORT=3002    # defaults to 3002
+
+# Chain Configuration
+NETWORK=base    # or 'base-sepolia' for testnet
+RPC_URL=your_rpc_url
+CHAIN_ID=8453   # Base Network
 ```
 
 #### AI Provider Settings (choose one)
@@ -47,6 +66,17 @@ API_TARGET=groq
 OLLAMA_MODEL=llama2:latest
 OLLAMA_ENDPOINT=http://localhost:11434
 API_TARGET=ollama
+```
+
+#### Blockchain Integration
+```env
+# The Graph Configuration
+GRAPH_API_KEY=your_key_here
+GRAPH_ENDPOINT=https://api.studio.thegraph.com/query/[your-id]/cryptodailybrief/version/latest
+
+# Wallet Configuration
+WALLET_PRIVATE_KEY=your_private_key  # For automated operations
+WALLET_PROVIDER=evm                  # Available: evm, hardware
 ```
 
 #### Autonome Integration
@@ -110,79 +140,138 @@ AUTONOME_PASSWORD=your_password
 
 When running in server mode (MODE=server):
 
-- `POST /chat`
-  - Request body:
-    ```json
+### Chat Interface
+
+`POST /chat`
+```json
+{
+  "message": "Analyze my portfolio",
+  "walletAddress": "0x...",
+  "options": {
+    "detailed": true,
+    "timeframe": "1m",
+    "includeNFTs": true
+  }
+}
+```
+
+### Wallet Operations
+
+`POST /wallet/transfer`
+```json
+{
+  "tokenType": "ERC1155",
+  "tokenAddress": "0x...",
+  "tokenId": "1",
+  "to": "0x...",
+  "amount": "1"
+}
+```
+
+`GET /wallet/nfts/:address`
+```json
+{
+  "collections": [
     {
-      "message": "Analyze my portfolio",
-      "walletAddress": "0x...",
-      "options": {
-        "detailed": true,
-        "timeframe": "1m"
-      }
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "analysis": {
-        "summary": "Your portfolio overview...",
-        "recommendations": [
-          {
-            "type": "REBALANCE",
-            "description": "Consider reducing ETH exposure..."
+      "address": "0x...",
+      "name": "Collection Name",
+      "tokens": [
+        {
+          "id": "1",
+          "balance": "1",
+          "metadata": {
+            "name": "Token Name",
+            "image": "ipfs://..."
           }
-        ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### The Graph Queries
+
+`POST /query/subgraph`
+```graphql
+query UserTransactions($address: String!) {
+  account(id: $address) {
+    tokens {
+      id
+      balance
+      transfers {
+        timestamp
+        amount
       }
     }
-    ```
+  }
+}
+```
+
+## Tools and Providers
+
+### Wallet Providers
+
+- **EVMWalletProvider**: Standard EVM wallet operations
+- **HardwareWalletProvider**: Ledger/Trezor support
+- **CustomWalletProvider**: Extensible base class
+
+### Action Providers
+
+- **TheGraphActionProvider**: Subgraph interaction
+- **ERC1155ActionProvider**: NFT operations
+- **MarketActionProvider**: Price and volume data
 
 ## Docker Configuration
 
-The agent includes a production-ready Dockerfile and docker-compose configuration:
+Production-ready container setup:
 
-- `Dockerfile`: Multi-stage build for minimal image size
-- `docker-compose.yml`: Service definition with proper networking
-- `docker-compose-image.yml`: Pre-built image deployment
+- `Dockerfile`: Multi-stage build
+- `docker-compose.yml`: Service definition
+- `docker-compose-image.yml`: Pre-built deployment
 
-### Building Custom Images
+### Custom Build
 
 ```bash
-# Build the image
+# Build
 make build
 
 # Push to registry
 make push DOCKER_USERNAME=your-username
 
-# Run with custom configuration
+# Run with custom config
 make run ENV_FILE=.env.production
 ```
 
 ## Logging
 
-The agent uses a structured logging system:
+Structured logging system:
 
-- **Request/Response Logging**: All interactions are logged
-- **Performance Metrics**: Response times and API latencies
-- **Error Tracking**: Detailed error information with stack traces
-- **Log Rotation**: Automatic log file management
+- Request/response tracing
+- Performance metrics
+- Error tracking
+- Log rotation
 
-Log files are stored in:
+Files:
 ```
 logs/
   ├── error.log
   ├── combined.log
-  └── api.log
+  ├── wallet.log
+  └── graph.log
 ```
 
 ## Testing
 
 ```bash
-# Run all tests
+# Full test suite
 npm test
 
-# Run with coverage
+# Coverage report
 npm run test:coverage
+
+# Integration tests
+npm run test:integration
 ```
 
 ## Contributing
@@ -195,4 +284,4 @@ npm run test:coverage
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE)
