@@ -4,6 +4,7 @@ import {
   wethActionProvider,
   walletActionProvider,
   erc20ActionProvider,
+  erc721ActionProvider,
   cdpApiActionProvider,
   cdpWalletActionProvider,
   pythActionProvider,
@@ -16,6 +17,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
 import { ChatGroq } from "@langchain/groq";
 import { theGraphActionProvider } from "./tools/thegraph/TheGraphActionProvider";
+import { erc1155ActionProvider } from "./tools/erc1155/erc1155ActionProvider";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
@@ -230,8 +232,10 @@ async function initializeAgent() {
         wethActionProvider(),
         pythActionProvider(),
         walletActionProvider(),
+        erc1155ActionProvider(),
         erc20ActionProvider(),
         theGraphActionProvider(),
+        erc721ActionProvider(),
         cdpApiActionProvider({
           apiKeyName: process.env.CDP_API_KEY_NAME,
           apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY?.replace(
