@@ -5,12 +5,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: CryptoDailyBrief
+    name: Contract
     network: base-sepolia
     source:
       address: "0xf25b72298d0655D968d53a88509D8fFf4E6fb3fd"
-      abi: CryptoDailyBrief
-      startBlock: 21634544
+      abi: Contract
+      startBlock: 0
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -24,8 +24,8 @@ dataSources:
         - URI
         - Unstaked
       abis:
-        - name: CryptoDailyBrief
-          file: ./abis/CryptoDailyBrief.json
+        - name: Contract
+          file: ./abis/Contract.json
       eventHandlers:
         - event: ApprovalForAll(indexed address,indexed address,bool)
           handler: handleApprovalForAll
@@ -41,4 +41,4 @@ dataSources:
           handler: handleURI
         - event: Unstaked(indexed address,uint256,uint256)
           handler: handleUnstaked
-      file: ./src/crypto-daily-brief.ts
+      file: ./src/contract.ts

@@ -8,7 +8,7 @@ import {
   TransferSingle,
   URI,
   Unstaked,
-} from "../generated/CryptoDailyBrief/CryptoDailyBrief";
+} from "../generated/Contract/Contract";
 
 export function createApprovalForAllEvent(
   account: Address,

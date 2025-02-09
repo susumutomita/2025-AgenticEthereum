@@ -6,7 +6,7 @@ import {
   TransferSingle as TransferSingleEvent,
   URI as URIEvent,
   Unstaked as UnstakedEvent,
-} from "../generated/CryptoDailyBrief/CryptoDailyBrief";
+} from "../generated/Contract/Contract";
 import {
   ApprovalForAll,
   OwnershipTransferred,

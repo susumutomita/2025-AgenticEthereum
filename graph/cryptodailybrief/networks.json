@@ -1,8 +1,8 @@
 {
   "base-sepolia": {
-    "CryptoDailyBrief": {
+    "Contract": {
       "address": "0xf25b72298d0655D968d53a88509D8fFf4E6fb3fd",
-      "startBlock": 21634544
+      "startBlock": 0
     }
   }
 }
